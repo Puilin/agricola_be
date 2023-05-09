@@ -13,7 +13,3 @@ router.register(r'fenceposition', views.FencePositionViewSet)
 urlpatterns = [
     path('', include(router.urls)),
 ]
-
-urlpatterns = [
-    path('', include(router.urls)),
-]
