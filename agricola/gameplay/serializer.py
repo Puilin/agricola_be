@@ -1,60 +1,39 @@
 from rest_framework import serializers
 from rest_framework.validators import UniqueTogetherValidator
-from .models import Account, Player, PlayerBoardStatus, BoardPosition, FencePosition
-from .models import Account
+from .models import *
 
 
 class AccountSerializer(serializers.ModelSerializer):
     class Meta:
         model = Account
         fields = '__all__'
-        validators = [
-            UniqueTogetherValidator(
-                queryset=Account.objects.all(),
-                fields=['email', 'name'],
-            )
-        ]
 
 class PlayerSerializer(serializers.ModelSerializer):
     class Meta:
         model = Player
         fields = '__all__'
-        validators = [
-            UniqueTogetherValidator(
-                queryset=Player.objects.all(),
-                fields=['id'],
-            )
-        ]
 
 class PlayerBoardStatusSerializer(serializers.ModelSerializer):
     class Meta:
         model = PlayerBoardStatus
         fields = '__all__'
-        validators = [
-            UniqueTogetherValidator(
-                queryset=PlayerBoardStatus.objects.all(),
-                fields=['id'],
-            )
-        ]
 
 class BoardPositionSerializer(serializers.ModelSerializer):
     class Meta:
         model = BoardPosition
         fields = '__all__'
-        validators = [
-            UniqueTogetherValidator(
-                queryset=BoardPosition.objects.all(),
-                fields=['id'],
-            )
-        ]
 
 class FencePositionSerializer(serializers.ModelSerializer):
     class Meta:
         model = FencePosition
         fields = '__all__'
-        validators = [
-            UniqueTogetherValidator(
-                queryset=FencePosition.objects.all(),
-                fields=['id'],
-            )
-        ]
+
+class FileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = File
+        fields = '__all__'
+
+class ResourceImgSerialzier(serializers.ModelSerializer):
+    class Meta:
+        model = ResourceImg
+        fields = '__all__'

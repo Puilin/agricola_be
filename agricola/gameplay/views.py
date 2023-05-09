@@ -22,3 +22,11 @@ class BoardPositionViewSet(ModelViewSet):
 class FencePositionViewSet(ModelViewSet):
     queryset = FencePosition.objects.all()
     serializer_class = FencePositionSerializer
+
+class FileViewSet(ModelViewSet):
+    queryset = File.objects.all()
+    serializer_class = FileSerializer
+
+class ResourceImgViewSet(ModelViewSet):
+    queryset = ResourceImg.objects.all()
+    serializer_class = ResourceImgSerialzier
