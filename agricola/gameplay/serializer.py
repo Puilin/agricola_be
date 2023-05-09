@@ -1,11 +1,8 @@
 from rest_framework import serializers
 from rest_framework.validators import UniqueTogetherValidator
-<<<<<<< HEAD
 from .models import Account, Player, PlayerBoardStatus, BoardPosition, FencePosition
-=======
 from .models import Account
 
->>>>>>> yh.hong
 
 class AccountSerializer(serializers.ModelSerializer):
     class Meta:
@@ -17,7 +14,6 @@ class AccountSerializer(serializers.ModelSerializer):
                 fields=['email', 'name'],
             )
         ]
-<<<<<<< HEAD
 
 class PlayerSerializer(serializers.ModelSerializer):
     class Meta:
@@ -62,5 +58,3 @@ class FencePositionSerializer(serializers.ModelSerializer):
                 fields=['id'],
             )
         ]
-=======
->>>>>>> yh.hong
