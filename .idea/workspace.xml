@@ -5,7 +5,7 @@
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/agricola/gameplay/admin.py" beforeDir="false" afterPath="$PROJECT_DIR$/agricola/gameplay/admin.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/agricola/gameplay/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/agricola/gameplay/models.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/agricola/gameplay/urls.py" beforeDir="false" afterPath="$PROJECT_DIR$/agricola/gameplay/urls.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/agricola/gameplay/serializer.py" beforeDir="false" afterPath="$PROJECT_DIR$/agricola/gameplay/serializer.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/agricola/gameplay/views.py" beforeDir="false" afterPath="$PROJECT_DIR$/agricola/gameplay/views.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
