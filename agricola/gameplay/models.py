@@ -40,3 +40,10 @@ class PlayerResource(models.Model):
     player_id = models.ForeignKey('Player', on_delete=models.CASCADE)
     resource_id = models.ForeignKey('Resource', on_delete=models.SET_NULL)
     resource_num = models.IntegerField(null=False, default=0)
+
+class Account(models.Model):
+    email = models.CharField(
+        primary_key=True, max_length=30, null=False, default='-')
+    name = models.CharField(max_length=10)
+    user_id = models.CharField(max_length=20, null=False)
+    user_pw = models.CharField(max_length=20, null=False)
