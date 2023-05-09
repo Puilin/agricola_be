@@ -32,3 +32,11 @@ class FencePosition(models.Model):
     top = models.BooleanField(null=False, default=False)
     right = models.BooleanField(null=False, default=False)
     bottom = models.BooleanField(null=False, default=False)
+
+class Resource(models.Model):
+    resource_name = models.CharField(max_length=4, null=False)
+
+class PlayerResource(models.Model):
+    player_id = models.ForeignKey('Player', on_delete=models.CASCADE)
+    resource_id = models.ForeignKey('Resource', on_delete=models.SET_NULL)
+    resource_num = models.IntegerField(null=False, default=0)
