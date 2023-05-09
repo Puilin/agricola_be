@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from rest_framework.validators import UniqueTogetherValidator
-from .models import Account, Player, PlayerBoardStatus, BoardPosition, FencePosition
+from .models import Account
 
 
 class AccountSerializer(serializers.ModelSerializer):
