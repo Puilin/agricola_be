@@ -9,6 +9,8 @@ router.register(r'player', views.PlayerViewSet)
 router.register(r'playerboardstatus', views.PlayerBoardStatusViewSet)
 router.register(r'boardposition', views.BoardPositionViewSet)
 router.register(r'fenceposition', views.FencePositionViewSet)
+router.register(r'file', views.FileViewSet)
+router.register(r'resourceimg', views.ResourceImgViewSet)
 
 urlpatterns = [
     path('', include(router.urls)),
