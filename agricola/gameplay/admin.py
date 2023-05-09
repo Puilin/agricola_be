@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Account, Player, PlayerBoardStatus, BoardPosition, FencePosition, Resource, PlayerResource
+from .models import *
 
 # Register your models here.
 admin.site.register(Account)
@@ -9,3 +9,7 @@ admin.site.register(BoardPosition)
 admin.site.register(FencePosition)
 admin.site.register(Resource)
 admin.site.register(PlayerResource)
+admin.site.register(Card)
+admin.site.register(SubFacilityCard)
+admin.site.register(JobCard)
+admin.site.register(MainFacilityCard)

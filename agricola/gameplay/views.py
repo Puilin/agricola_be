@@ -22,3 +22,19 @@ class BoardPositionViewSet(ModelViewSet):
 class FencePositionViewSet(ModelViewSet):
     queryset = FencePosition.objects.all()
     serializer_class = FencePositionSerializer
+
+class CardViewSet(ModelViewSet):
+    queryset = Card.objects.all()
+    serializer_class = CardSerializer
+
+class SubFacilityCardViewSet(ModelViewSet):
+    queryset = SubFacilityCard.objects.all()
+    serializer_class = SubFacilityCardSerializer
+
+class JobCardViewSet(ModelViewSet):
+    queryset = JobCard.objects.all()
+    serializer_class = JobCardSerializer
+
+class MainFacilityCardViewSet(ModelViewSet):
+    queryset = MainFacilityCard.objects.all()
+    serializer_class = MainFacilityCardSerializer
