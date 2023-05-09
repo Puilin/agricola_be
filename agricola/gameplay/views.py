@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from rest_framework.viewsets import ModelViewSet
-from .models import Account, Player, PlayerBoardStatus, BoardPosition, FencePosition
-from .serializer import AccountSerializer, PlayerSerializer, PlayerBoardStatusSerializer, BoardPositionSerializer, FencePositionSerializer
+from .models import *
+from .serializer import *
 # Create your views here.
 class AccountViewSet(ModelViewSet):
     queryset = Account.objects.all()
