@@ -48,3 +48,21 @@ class File(models.Model):
 class ResourceImg(models.Model):
     file_id = models.ForeignKey("File", on_delete=models.CASCADE)
     resource_id = models.ForeignKey("Resource", on_delete=models.CASCADE)
+
+class Card(models.Model):
+    cardname = models.CharField(max_length=20, null=False)
+    card_img = models.ForeignKey('File', on_delete=models.CASCADE)
+
+class SubFacilityCard(models.Model):
+    card_id = models.ForeignKey('Card', on_delete=models.CASCADE)
+    type = models.CharField(50)
+
+class JobCard(models.Model):
+    card_id = models.ForeignKey('Card', on_delete=models.CASCADE)
+    type = models.CharField(50)
+
+class MainFacilityCard(models.Model):
+    card_id = models.ForeignKey('Card', on_delete=models.CASCADE)
+    type = models.CharField(50)
+
+

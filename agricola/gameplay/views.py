@@ -30,3 +30,20 @@ class FileViewSet(ModelViewSet):
 class ResourceImgViewSet(ModelViewSet):
     queryset = ResourceImg.objects.all()
     serializer_class = ResourceImgSerialzier
+
+class CardViewSet(ModelViewSet):
+    queryset = Card.objects.all()
+    serializer_class = CardSerializer
+
+class SubFacilityCardViewSet(ModelViewSet):
+    queryset = SubFacilityCard.objects.all()
+    serializer_class = SubFacilityCardSerializer
+
+class JobCardViewSet(ModelViewSet):
+    queryset = JobCard.objects.all()
+    serializer_class = JobCardSerializer
+
+class MainFacilityCardViewSet(ModelViewSet):
+    queryset = MainFacilityCard.objects.all()
+    serializer_class = MainFacilityCardSerializer
+
