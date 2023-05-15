@@ -1,5 +1,4 @@
 from rest_framework import serializers
-
 from .models import *
 
 
@@ -26,6 +25,16 @@ class BoardPositionSerializer(serializers.ModelSerializer):
 class FencePositionSerializer(serializers.ModelSerializer):
     class Meta:
         model = FencePosition
+        fields = '__all__'
+
+class PeriodCardSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PeriodCard
+        fields = '__all__'
+
+class ActivationCostSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ActivationCost
         fields = '__all__'
 
 class FileSerializer(serializers.ModelSerializer):
@@ -58,3 +67,7 @@ class MainFacilityCardSerializer(serializers.ModelSerializer):
         model = MainFacilityCard
         fields = '__all__'
 
+class ActionBoxSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ActionBox
+        fields = '__all__'

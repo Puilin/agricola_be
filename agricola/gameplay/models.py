@@ -41,6 +41,16 @@ class PlayerResource(models.Model):
     resource_id = models.ForeignKey('Resource', on_delete=models.CASCADE)
     resource_num = models.IntegerField(null=False, default=0)
 
+class PeriodCard(models.Model):
+    # id = models.AutoField(primary_key=True) # primary_key 옵션이 없으면 자동으로 추가해준다
+    card_id = models.ForeignKey('Card', on_delete=models.CASCADE)
+    period = models.IntegerField(null=False)
+
+class ActivationCost(models.Model):
+    card_id = models.ForeignKey('Card', on_delete=models.CASCADE)
+    resource_id = models.ForeignKey('Resource', on_delete=models.CASCADE)
+    resource_num = models.IntegerField(null=False)
+
 class File(models.Model):
     path = models.CharField(null=False, max_length=255)
     filename = models.CharField(null=False, max_length=255)
@@ -55,14 +65,18 @@ class Card(models.Model):
 
 class SubFacilityCard(models.Model):
     card_id = models.ForeignKey('Card', on_delete=models.CASCADE)
-    type = models.CharField(50)
+    type = models.CharField(max_length=50)
 
 class JobCard(models.Model):
     card_id = models.ForeignKey('Card', on_delete=models.CASCADE)
-    type = models.CharField(50)
+    type = models.CharField(max_length=50)
 
 class MainFacilityCard(models.Model):
     card_id = models.ForeignKey('Card', on_delete=models.CASCADE)
-    type = models.CharField(50)
+    type = models.CharField(max_length=50)
 
-
+class ActionBox(models.Model):
+    card_id = models.ForeignKey('PeriodCard', on_delete=models.CASCADE)
+    acc_resource = models.IntegerField(default=0)
+    add_resource = models.IntegerField(default=0)
+    round = models.IntegerField(null=False)

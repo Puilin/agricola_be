@@ -1,2 +1,13 @@
 __pycache__
+
 .vscode
+
+Pipfile
+
+Pipfile.lock
+
+.idea
+
+.venv
+
+.DS_Store

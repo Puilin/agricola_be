@@ -23,6 +23,14 @@ class FencePositionViewSet(ModelViewSet):
     queryset = FencePosition.objects.all()
     serializer_class = FencePositionSerializer
 
+class PeriodCardViewSet(ModelViewSet):
+    queryset = PeriodCard.objects.all()
+    serializer_class = PeriodCardSerializer
+
+class ActivationCostViewSet(ModelViewSet):
+    queryset = ActivationCost.objects.all()
+    serializer_class = ActivationCostSerializer
+
 class FileViewSet(ModelViewSet):
     queryset = File.objects.all()
     serializer_class = FileSerializer
@@ -47,3 +55,6 @@ class MainFacilityCardViewSet(ModelViewSet):
     queryset = MainFacilityCard.objects.all()
     serializer_class = MainFacilityCardSerializer
 
+class ActionBoxViewSet(ModelViewSet):
+    queryset = ActionBox.objects.all()
+    serializer_class = ActionBoxSerializer
