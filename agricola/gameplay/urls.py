@@ -10,8 +10,10 @@ router.register(r'playerboardstatus', views.PlayerBoardStatusViewSet)
 router.register(r'boardposition', views.BoardPositionViewSet)
 router.register(r'fenceposition', views.FencePositionViewSet)
 router.register(r'periodcard', views.PeriodCardViewSet)
-router.register(r'activationcost', views.ActivationCostViewSet)
-router.register(r'file', views.FileViewSet)
+router.register(r'activationcost', views.ActivationCostViewSet),
+router.register(r'subfacilitycard', views.SubFacilityCardViewSet),
+router.register(r'file', views.FileViewSet),
+router.register(r'card', views.CardViewSet),
 router.register(r'resourceimg', views.ResourceImgViewSet)
 router.register(r'actionbox', views.ActionBoxViewSet)
 
