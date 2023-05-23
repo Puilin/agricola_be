@@ -2,8 +2,12 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="16da5190-a552-4079-b6e0-757158e23a6f" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/agricola/agricola/settings.py" beforeDir="false" afterPath="$PROJECT_DIR$/agricola/agricola/settings.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/agricola/db.sqlite3" beforeDir="false" afterPath="$PROJECT_DIR$/agricola/db.sqlite3" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/agricola/gameplay/admin.py" beforeDir="false" afterPath="$PROJECT_DIR$/agricola/gameplay/admin.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/agricola/gameplay/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/agricola/gameplay/models.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/agricola/gameplay/serializer.py" beforeDir="false" afterPath="$PROJECT_DIR$/agricola/gameplay/serializer.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/agricola/gameplay/urls.py" beforeDir="false" afterPath="$PROJECT_DIR$/agricola/gameplay/urls.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/agricola/gameplay/views.py" beforeDir="false" afterPath="$PROJECT_DIR$/agricola/gameplay/views.py" afterDir="false" />
     </list>
@@ -50,7 +54,7 @@
       <workItem from="1683202969299" duration="116000" />
       <workItem from="1683523987223" duration="2805000" />
       <workItem from="1683529539152" duration="6336000" />
-      <workItem from="1684780516351" duration="1735000" />
+      <workItem from="1684780516351" duration="1770000" />
     </task>
     <servers />
   </component>
