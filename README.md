@@ -21,7 +21,9 @@
 ```pip install djangorestframework```  
 ```pip install drf-yasg```  
 ```pip install django-cors-headers```  
-```python3 manage.py runserver```
+```pip install mysqlclient```  
+```pip install pymysql```  
+```python3 manage.py runserver```  
 <br>
 
 ## 📍 주요 기능
