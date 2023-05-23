@@ -21,7 +21,7 @@
 ```pip install djangorestframework```  
 ```pip install drf-yasg```  
 ```pip install django-cors-headers```  
-```pip install pymysqlt```  
+```pip install pymysql```  
 ```pip install mysql-client```  
 ```python3 manage.py runserver```  
 <br>
