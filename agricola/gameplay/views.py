@@ -47,25 +47,39 @@ class CardViewSet(ModelViewSet):
     serializer_class = CardSerializer
 
 class SubFacilityCardViewSet(ModelViewSet):
-    queryset = JobCard.objects.all()
-    serializer_class = JobCardSerializer
+    queryset = SubFacilityCard.objects.all()
+    serializer_class = SubFacilityCardSerializer
     @action(detail=False, methods=['get'])
     def get_random_subfacilitycards(self, request):
         subfacilitycards = list(SubFacilityCard.objects.all())
         shuffle(subfacilitycards)  # 리스트를 랜덤하게 섞습니다.
 
-        chunked_subcards = [subfacilitycards[i:i+7] for i in range(0, len(subfacilitycards), 7)]  # 7개씩 두 묶음으로 나눕니다.
+        chunked_subcards = [subfacilitycards[i:i+7] for i in range(0, 14, 7)]  # 7개씩 두 묶음으로 나눕니다.
         serialized_data = []
 
         for chunk in chunked_subcards:
-            serializer = JobCardSerializer(chunk, many=True)
-            serialized_data.extend(serializer.data)
+            serializer = SubFacilityCardSerializer(chunk, many=True)
+            serialized_data.append(serializer.data)
 
         return Response(serialized_data)
 
 class JobCardViewSet(ModelViewSet):
     queryset = JobCard.objects.all()
     serializer_class = JobCardSerializer
+
+    @action(detail=False, methods=['get'])
+    def get_random_jobcards(self, request):
+        jobcards = list(JobCard.objects.all())
+        shuffle(jobcards)  # 리스트를 랜덤하게 섞습니다.
+
+        chunked_subcards = [jobcards[i:i + 7] for i in range(0, 14, 7)]  # 7개씩 두 묶음으로 나눕니다.
+        serialized_data = []
+
+        for chunk in chunked_subcards:
+            serializer = JobCardSerializer(chunk, many=True)
+            serialized_data.append(serializer.data)
+
+        return Response(serialized_data)
 
 class MainFacilityCardViewSet(ModelViewSet):
     queryset = MainFacilityCard.objects.all()

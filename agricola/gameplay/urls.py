@@ -16,6 +16,7 @@ router.register(r'file', views.FileViewSet),
 router.register(r'card', views.CardViewSet),
 router.register(r'resourceimg', views.ResourceImgViewSet)
 router.register(r'actionbox', views.ActionBoxViewSet)
+router.register(r'jobcard', views.JobCardViewSet)
 
 urlpatterns = [
     path('', include(router.urls)),
