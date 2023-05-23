@@ -71,3 +71,8 @@ class ActionBoxSerializer(serializers.ModelSerializer):
     class Meta:
         model = ActionBox
         fields = '__all__'
+
+class FamilyPositionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = FamilyPosition
+        fields = '__all__'

@@ -2,7 +2,7 @@ from django.shortcuts import render
 from rest_framework.viewsets import ModelViewSet
 from .models import *
 from .serializer import *
-from random import shuffle
+from random import shuffle, choice
 from rest_framework.decorators import action
 from rest_framework.response import Response
 # Create your views here.
@@ -13,6 +13,18 @@ class AccountViewSet(ModelViewSet):
 class PlayerViewSet(ModelViewSet):
     queryset = Player.objects.all()
     serializer_class = PlayerSerializer
+
+    @action(detail=False, methods=['GET'])
+    def choose_first_player(self, request):
+        players = self.get_queryset()
+        if players.exists():
+            first_player = choice(players)
+            players.update(fst_player=False)  # 모든 플레이어의 'fst_player' 필드를 False로 변경
+            first_player.fst_player = True  # 선택된 선 플레이어의 'fst_player' 필드를 True로 설정
+            first_player.save()
+            return Response({'success': True, 'first_player': first_player.id})
+        else:
+            return Response({'success': False, 'message': 'No players found.'})
 
 class PlayerBoardStatusViewSet(ModelViewSet):
     queryset = PlayerBoardStatus.objects.all()
@@ -74,3 +86,7 @@ class MainFacilityCardViewSet(ModelViewSet):
 class ActionBoxViewSet(ModelViewSet):
     queryset = ActionBox.objects.all()
     serializer_class = ActionBoxSerializer
+
+class FamilyPositionViewSet(ModelViewSet):
+    queryset = FamilyPosition.objects.all()
+    serializer_class = FamilyPositionSerializer

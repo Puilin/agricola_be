@@ -80,3 +80,8 @@ class ActionBox(models.Model):
     acc_resource = models.IntegerField(default=0)
     add_resource = models.IntegerField(default=0)
     round = models.IntegerField(null=False)
+
+class FamilyPosition(models.Model):
+    player_id = models.ForeignKey('Player', on_delete=models.CASCADE)
+    action_id = models.ForeignKey('ActionBox', on_delete=models.CASCADE)
+    turn = models.IntegerField(unique=True)
