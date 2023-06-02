@@ -1,7 +1,29 @@
+asgiref==3.6.0
+certifi==2023.5.7
+cffi @ file:///private/var/folders/nz/j6p8yfhx1mv_0grj5xl4650h0000gp/T/abs_ab19r4bji3/croot/cffi_1670423206034/work
+channels==4.0.0
+charset-normalizer==3.1.0
+coreapi==2.3.3
+coreschema==0.0.4
+cryptography @ file:///private/var/folders/nz/j6p8yfhx1mv_0grj5xl4650h0000gp/T/abs_a9zjqvif1f/croot/cryptography_1677533099634/work
 Django==4.2.1
+django-cors-headers==4.0.0
 djangorestframework==3.14.0
 drf-yasg==1.21.5
-django-cors-headers==3.14.0
-pymysql==1.0.3
+idna==3.4
+inflection==0.5.1
+itypes==1.2.0
+Jinja2==3.1.2
+MarkupSafe==2.1.2
+mysql-client==0.0.1
 mysqlclient==1.4.3
-channels==4.0.0
+packaging==23.1
+pycparser @ file:///tmp/build/80754af9/pycparser_1636541352034/work
+PyMySQL==1.0.3
+pytz==2023.3
+requests==2.31.0
+ruamel.yaml==0.17.26
+ruamel.yaml.clib==0.2.7
+sqlparse==0.4.4
+uritemplate==4.1.1
+urllib3==2.0.2
