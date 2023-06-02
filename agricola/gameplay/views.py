@@ -131,12 +131,19 @@ class GameStatusViewSet(ModelViewSet):
     queryset = GameStatus.objects.all()
     serializer_class = GameStatusSerializer
 
+    @action(detail=False, methods=['get'])
+    def get_turn(self, request):
+        game_status = self.get_queryset().first()  # Assuming there is only one GameStatus instance
+        turn_counter = game_status.turn
+        return Response({'turn': turn_counter})
+
+
 class FamilyPositionViewSet(ModelViewSet):
     queryset = FamilyPosition.objects.all()
     serializer_class = FamilyPositionSerializer
 
-    @action(detail=True, methods=['post'])
-    def take_action(self, request, pk=None):
+    @action(detail=False, methods=['post'])
+    def take_action(self, request):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
