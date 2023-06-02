@@ -76,3 +76,8 @@ class FamilyPositionSerializer(serializers.ModelSerializer):
     class Meta:
         model = FamilyPosition
         fields = '__all__'
+
+class GameStatusSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = GameStatus
+        fields = '__all__'

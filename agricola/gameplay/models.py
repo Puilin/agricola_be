@@ -85,3 +85,6 @@ class FamilyPosition(models.Model):
     player_id = models.ForeignKey('Player', on_delete=models.CASCADE)
     action_id = models.ForeignKey('ActionBox', on_delete=models.CASCADE)
     turn = models.IntegerField(unique=True)
+
+class GameStatus(models.Model):
+    turn = models.IntegerField(default=1)
