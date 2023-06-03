@@ -211,3 +211,33 @@ class PlayerResourceViewSet(ModelViewSet):
 
         serializer = PlayerResourceSerializer(player_resource)
         return Response(serializer.data)
+    
+    @swagger_auto_schema(
+        method='get',
+        manual_parameters=[
+            openapi.Parameter('player_id', openapi.IN_QUERY, description='Player ID', type=openapi.TYPE_INTEGER),
+            openapi.Parameter('resource_id', openapi.IN_QUERY, description='Resource ID', type=openapi.TYPE_INTEGER),
+            openapi.Parameter('num_to_add', openapi.IN_QUERY, description='Number to add', type=openapi.TYPE_INTEGER),
+        ]
+    )
+    @action(detail=False, methods=['get'])
+    def update_player_resource(self, request):
+        player_id = request.query_params.get('player_id')
+        resource_id = request.query_params.get('resource_id')
+        num_to_add = int(request.query_params.get('num_to_add', 0))
+
+        try:
+            player_resource = PlayerResource.objects.get(player_id=player_id, resource_id=resource_id)
+        except PlayerResource.DoesNotExist:
+            return Response({'detail': 'Player resource not found.'}, status=404)
+
+        resource_num = player_resource.resource_num + num_to_add
+
+        if num_to_add < 0 and resource_num < 0:
+            return Response({'detail': 'Cannot reduce resource below zero.'}, status=400)
+
+        player_resource.resource_num = resource_num
+        player_resource.save()
+
+        serializer = PlayerResourceSerializer(player_resource)
+        return Response(serializer.data)
