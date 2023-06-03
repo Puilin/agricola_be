@@ -98,4 +98,4 @@ class FamilyPosition(models.Model):
 
 class GameStatus(models.Model):
     turn = models.IntegerField(default=1)
-    round = models.IntegerField(null = False)
+    round = models.IntegerField(null = False, default=1)
