@@ -127,15 +127,15 @@ class GameConsumer(AsyncWebsocketConsumer):
         try:
             player_resource = PlayerResource.objects.get(player_id=player_id, resource_id=resource_id)
         except PlayerResource.DoesNotExist:
-            await self.send({'detail': 'Player resource not found.'}, status=404)
+            await self.send_json({'detail': 'Player resource not found.'})
 
         resource_num = player_resource.resource_num + num_to_add
 
         if num_to_add < 0 and resource_num < 0:
-            return Response({'detail': 'Cannot reduce resource below zero.'}, status=400)
+            await self.send_json({'detail': 'Cannot reduce resource below zero.'})
 
         player_resource.resource_num = resource_num
         player_resource.save()
 
         serializer = PlayerResourceSerializer(player_resource)
-        return Response(serializer.data)
+        return serializer.data

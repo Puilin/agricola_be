@@ -166,7 +166,7 @@ class FamilyPositionViewSet(ModelViewSet):
 
         # Check if it's the player's turn
         # 상대방의 가족 구성원이 없거나, 자신의 차례일 경우
-        if another_player.adult_num == 0 or (is_first_player_turn and player.fst_player) or (not is_first_player_turn and not player.fst_player):
+        if another_player.remain_num == 0 or (is_first_player_turn and player.fst_player) or (not is_first_player_turn and not player.fst_player):
             # Action id 별로 메소드 호출
 
             # 덤불
@@ -190,8 +190,8 @@ class FamilyPositionViewSet(ModelViewSet):
             new_instance.save()
 
             #가족 구성원 수 업데이트
-            if player.adult_num != 0:
-                player.adult_num -= 1
+            if player.remain_num != 0:
+                player.remain_num -= 1
                 player.save()
 
             return response
