@@ -14,6 +14,7 @@ class Player(models.Model):
     baby_num = models.IntegerField(null=False, default=0)
     fst_player = models.BooleanField(default=False)
     score = models.IntegerField(null=False, default=0)
+    ramain_num = models.IntegerField(null=False, default=adult_num)
 
 class PlayerBoardStatus(models.Model):
     player_id = models.ForeignKey('Player', on_delete=models.CASCADE)

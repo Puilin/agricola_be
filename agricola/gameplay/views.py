@@ -136,6 +136,23 @@ class GameStatusViewSet(ModelViewSet):
         game_status = self.get_queryset().first()  # Assuming there is only one GameStatus instance
         turn_counter = game_status.turn
         return Response({'turn': turn_counter})
+    
+    @action(detail=False, methods=['put'])
+    def round_end(self, request):
+        player = Player.objects.all()
+        player.reamin_num = player.adult_num
+        player.save()
+
+        actionbox = ActionBox.objects.all()
+        if(actionbox.is_res):
+            actionbox.acc_resource += actionbox.add_resource
+        else:
+            actionbox.acc_resource == actionbox.add_resource
+        actionbox.save()
+
+        game_status = GameStatus.objects.first()
+        game_status.turn = 1
+        game_status.save()
 
 
 class FamilyPositionViewSet(ModelViewSet):
