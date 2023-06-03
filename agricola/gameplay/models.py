@@ -18,14 +18,18 @@ class Player(models.Model):
 
 class PlayerBoardStatus(models.Model):
     player_id = models.ForeignKey('Player', on_delete=models.CASCADE)
-    house = models.CharField(max_length=2, null=False, default="나무")
-    room_num = models.IntegerField(null=False, default=2)
 
 class BoardPosition(models.Model):
     board_id = models.ForeignKey('PlayerBoardStatus', on_delete=models.CASCADE)
     position = models.IntegerField(null=False)
     position_name = models.CharField(max_length=6, null=False, default='빈칸')
     is_fam = models.BooleanField(null=False, default=False)
+    vege_type = models.IntegerField(null=False, default=0)
+    vege_num = models.IntegerField(null=False, default=0)
+    house_type = models.IntegerField(null=False, default=0)
+    house_num = models.IntegerField(null=False, default=0)
+    cowshed_num = models.IntegerField(null=False, default=0)
+    animal_type = models.IntegerField(null=False, default=0)
 
 class FencePosition(models.Model):
     board_id = models.ForeignKey('BoardPosition', on_delete=models.CASCADE)
