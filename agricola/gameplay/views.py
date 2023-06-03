@@ -221,7 +221,8 @@ class GameStatusViewSet(ModelViewSet):
             actionbox.is_occupied = False
             actionbox.save()
 
-        game_status = GameStatus.objects.first()
+        game_status = GameStatus.objects.all()
+        game_status.round += 1
         game_status.turn = 1
         game_status.save()
 
@@ -262,6 +263,27 @@ class GameStatusViewSet(ModelViewSet):
                 cow.resource_num += 1
             cow.save()
 
+    @swagger_auto_schema(
+        method='get',
+        manual_parameters=[
+            openapi.Parameter('player_id', openapi.IN_QUERY, description='Player ID', type=openapi.TYPE_INTEGER),
+        ]
+    )
+    @action(detail=False, methods=['get'])
+    def my_turn(self, request):
+        player_id = request.query_params.get('player_id')
+
+        player = Player.objects.get(id=player_id)
+        another_player = Player.objects.exclude(id=player_id).first()
+        game_status = self.get_queryset().first()
+        turn_counter = game_status.turn
+        
+        is_first_player_turn = turn_counter % 2 == 1
+        
+        result = another_player.remain_num == 0 or (is_first_player_turn and player.fst_player) or (not is_first_player_turn and not player.fst_player)
+
+        return Response({'my_turn': result})
+        
 
 class FamilyPositionViewSet(ModelViewSet):
     queryset = FamilyPosition.objects.all()
@@ -301,11 +323,16 @@ class FamilyPositionViewSet(ModelViewSet):
             elif action_id == 2:
                 # perform_action_2()
                 pass
+            #곡식종자
             elif action_id == 10:
                 response = grain_seed(player)
             # 숲
             elif action_id == 11:
                 response = forest(player)
+            #집개조
+            elif action_id == 21:
+                response = house_upgrade(player)
+
             
             # 코드가 404면 -> 해당 행동이 거부됨 ->함수 종료
             if response.status_code == 404:
@@ -340,7 +367,7 @@ class PlayerResourceViewSet(ModelViewSet):
         method='get',
         manual_parameters=[
             openapi.Parameter('player_id', openapi.IN_QUERY, description='Player ID', type=openapi.TYPE_INTEGER),
-            openapi.Parameter('resource_id', openapi.IN_QUERY, description='Resource ID', type=openapi.TYPE_INTEGER),
+            openapi.Parameter('resource_id', openapi.IN_QUERY, description='Resource ID', type=openapi.TYPE_INTEGER, required=False),
         ]
     )
     @action(detail=False, methods=['get'])
@@ -348,13 +375,21 @@ class PlayerResourceViewSet(ModelViewSet):
         player_id = request.query_params.get('player_id')
         resource_id = request.query_params.get('resource_id')
 
-        try:
-            player_resource = PlayerResource.objects.get(player_id=player_id, resource_id=resource_id)
-        except PlayerResource.DoesNotExist:
-            return Response({'message': 'Player resource not found.'}, status=404)
+        if resource_id == None:
+            try:
+                player_resources = PlayerResource.objects.filter(player_id=player_id)
+            except PlayerResource.DoesNotExist:
+                return Response({'message': 'Player resource not found.'}, status=404)
+            serializer = PlayerResourceSerializer(player_resources, many=True)
+            return Response(serializer.data)
+        else:
+            try:
+                player_resource = PlayerResource.objects.get(player_id=player_id, resource_id=resource_id)
+            except PlayerResource.DoesNotExist:
+                return Response({'message': 'Player resource not found.'}, status=404)
 
-        serializer = PlayerResourceSerializer(player_resource)
-        return Response(serializer.data)
+            serializer = PlayerResourceSerializer(player_resource)
+            return Response(serializer.data)
     
     @swagger_auto_schema(
         method='get',
