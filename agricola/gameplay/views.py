@@ -149,6 +149,7 @@ class GameStatusViewSet(ModelViewSet):
             actionbox.acc_resource += actionbox.add_resource
         else:
             actionbox.acc_resource = actionbox.add_resource
+        actionbox.is_occupied = False
         actionbox.save()
 
         game_status = GameStatus.objects.first()
@@ -157,9 +158,11 @@ class GameStatusViewSet(ModelViewSet):
 
     @action(detail=False, methods=['put'])
     def priod_end(self, request):
-        player = Player.objects.all()
-        playerResource = PlayerResource.objects.all()
-        playerBoard = PlayerBoardStatus.objects.all()
+        players = Player.objects.all()
+        for player in players:
+            playerResource = PlayerResource.objects.get(player_id = player.id)
+            playerBoard = PlayerBoardStatus.objects.get(player_id = player.id)
+            boardPosition =BoardPosition.objects.get()
         # (수확1번) 1️⃣,2️⃣작물이 심어져 있는 밭에서 곡식/채소 1개씩 수확
         # (수확2번) 1️⃣,2️⃣가족 먹여살리기
         # (수확3번) 1️⃣,2️⃣동물 번식
