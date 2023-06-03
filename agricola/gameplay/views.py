@@ -8,6 +8,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
+from .actions import *
 
 # Create your views here.
 class AccountViewSet(ModelViewSet):
@@ -148,11 +149,12 @@ class FamilyPositionViewSet(ModelViewSet):
         serializer.is_valid(raise_exception=True)
 
         # Load the player ID and action ID from the request data
-        player_id = request.data.get('player')
-        action_id = request.data.get('action')
+        player_id = request.data.get('player_id')
+        action_id = request.data.get('action_id')
 
         # Get the player and action objects
         player = Player.objects.get(id=player_id)
+        another_player = Player.objects.exclude(id=player_id).first()
         action = ActionBox.objects.get(id=action_id)
 
         # Get the current turn counter from the game_status table
@@ -163,24 +165,36 @@ class FamilyPositionViewSet(ModelViewSet):
         is_first_player_turn = turn_counter % 2 == 1
 
         # Check if it's the player's turn
-        if (is_first_player_turn and player.is_first_player) or (not is_first_player_turn and not player.is_first_player):
+        # 상대방의 가족 구성원이 없거나, 자신의 차례일 경우
+        if another_player.remain_num == 0 or (is_first_player_turn and player.fst_player) or (not is_first_player_turn and not player.fst_player):
             # Action id 별로 메소드 호출
+
+            # 덤불
             if action_id == 1:
                 # perform_action_1()
                 pass
+            # 수풀
             elif action_id == 2:
                 # perform_action_2()
                 pass
+            # 숲
+            elif action_id == 11:
+                response = forest(player)
 
-            # Update the turn counter in the game_status table
+            # 턴 카운터 업데이트
             game_status.turn = turn_counter + 1
             game_status.save()
 
-            # Create a new instance in the FamilyPosition model
-            new_instance = FamilyPosition.objects.create(player=player, action=action, turn=turn_counter + 1)
+            # FamilyPosition에 데이터 추가
+            new_instance = FamilyPosition.objects.create(player_id=player, action_id=action, turn=turn_counter)
             new_instance.save()
 
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
+            #가족 구성원 수 업데이트
+            if player.remain_num != 0:
+                player.remain_num -= 1
+                player.save()
+
+            return response
         else:
             return Response({'error': 'It is not your turn to take an action.'}, status=status.HTTP_403_FORBIDDEN)
 

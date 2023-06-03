@@ -14,6 +14,7 @@ class Player(models.Model):
     baby_num = models.IntegerField(null=False, default=0)
     fst_player = models.BooleanField(default=False)
     score = models.IntegerField(null=False, default=0)
+    remain_num = models.IntegerField(null=True)
 
 class PlayerBoardStatus(models.Model):
     player_id = models.ForeignKey('Player', on_delete=models.CASCADE)
@@ -82,6 +83,7 @@ class ActionBox(models.Model):
     add_resource = models.IntegerField(default=0)
     round = models.IntegerField(null=False)
     is_res = models.BooleanField(default=False)
+    is_occupied = models.BooleanField(null=False, default=False)
 
 class FamilyPosition(models.Model):
     player_id = models.ForeignKey('Player', on_delete=models.CASCADE)

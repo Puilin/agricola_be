@@ -117,3 +117,25 @@ class GameConsumer(AsyncWebsocketConsumer):
             response_data = {'error': 'It is not your turn to take an action.'}
 
         await self.send_json(response_data)
+    
+    
+    async def update_player_resource(self, request):
+        player_id = request.query_params.get('player_id')
+        resource_id = request.query_params.get('resource_id')
+        num_to_add = int(request.query_params.get('num_to_add', 0))
+
+        try:
+            player_resource = PlayerResource.objects.get(player_id=player_id, resource_id=resource_id)
+        except PlayerResource.DoesNotExist:
+            await self.send_json({'detail': 'Player resource not found.'})
+
+        resource_num = player_resource.resource_num + num_to_add
+
+        if num_to_add < 0 and resource_num < 0:
+            await self.send_json({'detail': 'Cannot reduce resource below zero.'})
+
+        player_resource.resource_num = resource_num
+        player_resource.save()
+
+        serializer = PlayerResourceSerializer(player_resource)
+        return serializer.data
