@@ -183,3 +183,31 @@ class FamilyPositionViewSet(ModelViewSet):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         else:
             return Response({'error': 'It is not your turn to take an action.'}, status=status.HTTP_403_FORBIDDEN)
+
+class ResourceViewSet(ModelViewSet):
+    queryset = Resource.objects.all()
+    serializer_class = ResourceSerializer
+    
+class PlayerResourceViewSet(ModelViewSet):
+    queryset = PlayerResource.objects.all()
+    serializer_class = PlayerResourceSerializer
+
+    @swagger_auto_schema(
+        method='get',
+        manual_parameters=[
+            openapi.Parameter('player_id', openapi.IN_QUERY, description='Player ID', type=openapi.TYPE_INTEGER),
+            openapi.Parameter('resource_id', openapi.IN_QUERY, description='Resource ID', type=openapi.TYPE_INTEGER),
+        ]
+    )
+    @action(detail=False, methods=['get'])
+    def get_player_resource(self, request):
+        player_id = request.query_params.get('player_id')
+        resource_id = request.query_params.get('resource_id')
+
+        try:
+            player_resource = PlayerResource.objects.get(player_id=player_id, resource_id=resource_id)
+        except PlayerResource.DoesNotExist:
+            return Response({'message': 'Player resource not found.'}, status=404)
+
+        serializer = PlayerResourceSerializer(player_resource)
+        return Response(serializer.data)
