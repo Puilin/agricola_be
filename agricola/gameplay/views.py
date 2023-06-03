@@ -234,9 +234,15 @@ class FamilyPositionViewSet(ModelViewSet):
             elif action_id == 2:
                 # perform_action_2()
                 pass
+            elif action_id == 10:
+                response = grain_seed(player)
             # 숲
             elif action_id == 11:
                 response = forest(player)
+            
+            # 코드가 404면 -> 해당 행동이 거부됨 ->함수 종료
+            if response.status_code == 404:
+                return
 
             # 턴 카운터 업데이트
             game_status.turn = turn_counter + 1
