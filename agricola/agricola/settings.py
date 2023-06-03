@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'gameplay',
     'corsheaders',
+    'channels',
 ]
 
 MIDDLEWARE = [
@@ -78,6 +79,13 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'agricola.wsgi.application'
 
+# 웹소켓 연결용
+ASGI_APPLICATION = 'agricola.asgi.application'
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels.layers.InMemoryChannelLayer"
+    }
+}
 
 # Database
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases
