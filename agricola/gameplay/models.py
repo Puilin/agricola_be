@@ -76,12 +76,17 @@ class MainFacilityCard(models.Model):
     type = models.CharField(max_length=50)
 
 class ActionBox(models.Model):
-    card_id = models.ForeignKey('PeriodCard', on_delete=models.CASCADE)
+    card_id = models.ForeignKey('PeriodCard', null=True, on_delete=models.CASCADE)
+    name = models.CharField(null=True, max_length=255)
     acc_resource = models.IntegerField(default=0)
     add_resource = models.IntegerField(default=0)
     round = models.IntegerField(null=False)
+    is_res = models.BooleanField(default=False)
 
 class FamilyPosition(models.Model):
     player_id = models.ForeignKey('Player', on_delete=models.CASCADE)
     action_id = models.ForeignKey('ActionBox', on_delete=models.CASCADE)
     turn = models.IntegerField(unique=True)
+
+class GameStatus(models.Model):
+    turn = models.IntegerField(default=1)

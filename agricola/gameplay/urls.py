@@ -18,6 +18,10 @@ router.register(r'card', views.CardViewSet),
 router.register(r'resourceimg', views.ResourceImgViewSet)
 router.register(r'actionbox', views.ActionBoxViewSet)
 router.register(r'jobcard', views.JobCardViewSet)
+router.register(r'familyposition', views.FamilyPositionViewSet)
+router.register(r'gamestatus', views.GameStatusViewSet)
+router.register(r'playerresource', views.PlayerResourceViewSet)
+router.register(r'resource', views.ResourceViewSet)
 
 urlpatterns = [
     path('', include(router.urls)),

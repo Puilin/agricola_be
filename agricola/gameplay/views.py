@@ -5,6 +5,10 @@ from .serializer import *
 from random import shuffle, choice
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from rest_framework import status
+from drf_yasg.utils import swagger_auto_schema
+from drf_yasg import openapi
+
 # Create your views here.
 class AccountViewSet(ModelViewSet):
     queryset = Account.objects.all()
@@ -14,6 +18,27 @@ class PlayerViewSet(ModelViewSet):
     queryset = Player.objects.all()
     serializer_class = PlayerSerializer
 
+    @swagger_auto_schema(
+    responses={
+        200: openapi.Response(
+            description='Success',
+            schema=openapi.Schema(
+                type=openapi.TYPE_OBJECT,
+                properties={
+                    'success': openapi.Schema(type=openapi.TYPE_BOOLEAN),
+                    'first_player': openapi.Schema(type=openapi.TYPE_INTEGER),
+                },
+                required=['name'],
+            ),
+            examples={
+                'application/json': {
+                    'success' : True,
+                    'first_player' : 1
+                }
+            }
+        ),
+    }
+    )
     @action(detail=False, methods=['GET'])
     def choose_first_player(self, request):
         players = self.get_queryset()
@@ -61,6 +86,7 @@ class CardViewSet(ModelViewSet):
 class SubFacilityCardViewSet(ModelViewSet):
     queryset = SubFacilityCard.objects.all()
     serializer_class = SubFacilityCardSerializer
+
     @action(detail=False, methods=['get'])
     def get_random_subfacilitycards(self, request):
         subfacilitycards = list(SubFacilityCard.objects.all())
@@ -101,6 +127,117 @@ class ActionBoxViewSet(ModelViewSet):
     queryset = ActionBox.objects.all()
     serializer_class = ActionBoxSerializer
 
+class GameStatusViewSet(ModelViewSet):
+    queryset = GameStatus.objects.all()
+    serializer_class = GameStatusSerializer
+
+    @action(detail=False, methods=['get'])
+    def get_turn(self, request):
+        game_status = self.get_queryset().first()  # Assuming there is only one GameStatus instance
+        turn_counter = game_status.turn
+        return Response({'turn': turn_counter})
+
+
 class FamilyPositionViewSet(ModelViewSet):
     queryset = FamilyPosition.objects.all()
     serializer_class = FamilyPositionSerializer
+
+    @action(detail=False, methods=['post'])
+    def take_action(self, request):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        # Load the player ID and action ID from the request data
+        player_id = request.data.get('player')
+        action_id = request.data.get('action')
+
+        # Get the player and action objects
+        player = Player.objects.get(id=player_id)
+        action = ActionBox.objects.get(id=action_id)
+
+        # Get the current turn counter from the game_status table
+        game_status = GameStatus.objects.first()
+        turn_counter = game_status.turn
+
+        # Check whose turn it is based on the turn counter
+        is_first_player_turn = turn_counter % 2 == 1
+
+        # Check if it's the player's turn
+        if (is_first_player_turn and player.is_first_player) or (not is_first_player_turn and not player.is_first_player):
+            # Action id 별로 메소드 호출
+            if action_id == 1:
+                # perform_action_1()
+                pass
+            elif action_id == 2:
+                # perform_action_2()
+                pass
+
+            # Update the turn counter in the game_status table
+            game_status.turn = turn_counter + 1
+            game_status.save()
+
+            # Create a new instance in the FamilyPosition model
+            new_instance = FamilyPosition.objects.create(player=player, action=action, turn=turn_counter + 1)
+            new_instance.save()
+
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        else:
+            return Response({'error': 'It is not your turn to take an action.'}, status=status.HTTP_403_FORBIDDEN)
+
+class ResourceViewSet(ModelViewSet):
+    queryset = Resource.objects.all()
+    serializer_class = ResourceSerializer
+    
+class PlayerResourceViewSet(ModelViewSet):
+    queryset = PlayerResource.objects.all()
+    serializer_class = PlayerResourceSerializer
+
+    @swagger_auto_schema(
+        method='get',
+        manual_parameters=[
+            openapi.Parameter('player_id', openapi.IN_QUERY, description='Player ID', type=openapi.TYPE_INTEGER),
+            openapi.Parameter('resource_id', openapi.IN_QUERY, description='Resource ID', type=openapi.TYPE_INTEGER),
+        ]
+    )
+    @action(detail=False, methods=['get'])
+    def get_player_resource(self, request):
+        player_id = request.query_params.get('player_id')
+        resource_id = request.query_params.get('resource_id')
+
+        try:
+            player_resource = PlayerResource.objects.get(player_id=player_id, resource_id=resource_id)
+        except PlayerResource.DoesNotExist:
+            return Response({'message': 'Player resource not found.'}, status=404)
+
+        serializer = PlayerResourceSerializer(player_resource)
+        return Response(serializer.data)
+    
+    @swagger_auto_schema(
+        method='get',
+        manual_parameters=[
+            openapi.Parameter('player_id', openapi.IN_QUERY, description='Player ID', type=openapi.TYPE_INTEGER),
+            openapi.Parameter('resource_id', openapi.IN_QUERY, description='Resource ID', type=openapi.TYPE_INTEGER),
+            openapi.Parameter('num_to_add', openapi.IN_QUERY, description='Number to add', type=openapi.TYPE_INTEGER),
+        ]
+    )
+    @action(detail=False, methods=['get'])
+    def update_player_resource(self, request):
+        player_id = request.query_params.get('player_id')
+        resource_id = request.query_params.get('resource_id')
+        num_to_add = int(request.query_params.get('num_to_add', 0))
+
+        try:
+            player_resource = PlayerResource.objects.get(player_id=player_id, resource_id=resource_id)
+        except PlayerResource.DoesNotExist:
+            return Response({'detail': 'Player resource not found.'}, status=404)
+
+        resource_num = player_resource.resource_num + num_to_add
+
+        if num_to_add < 0 and resource_num < 0:
+            return Response({'detail': 'Cannot reduce resource below zero.'}, status=400)
+
+        player_resource.resource_num = resource_num
+        player_resource.save()
+
+        serializer = PlayerResourceSerializer(player_resource)
+        return Response(serializer.data)
