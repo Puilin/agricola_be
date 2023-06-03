@@ -82,6 +82,7 @@ class ActionBox(models.Model):
     add_resource = models.IntegerField(default=0)
     round = models.IntegerField(null=False)
     is_res = models.BooleanField(default=False)
+    is_occupied = models.BooleanField(null=False, default=False)
 
 class FamilyPosition(models.Model):
     player_id = models.ForeignKey('Player', on_delete=models.CASCADE)
