@@ -40,3 +40,19 @@ def grain_seed(player):
 
     serializer = PlayerResourceSerializer(my_resource)
     return Response(serializer.data)
+
+def house_upgrade(player):
+    house_action = ActionBox.objects.get(id=21)
+    my_board = PlayerBoardStatus.objects.get(player_id=player.id)
+    reed = PlayerResource.objects.get(player_id=player.id, resource_id=3)
+    #집개조 칸에 누군가 있으면
+    if house_action.is_occupied:
+        return Response({'detail': 'There\'s someone else in house upgrade'}, status=404)
+    #집개조 칸에 이제 사람이 있음
+    house_action.is_occupied = True
+    house_action.save()
+
+    #나무집 -> 흙집
+
+    #흑집 -> 돌집
+    return

@@ -154,7 +154,8 @@ class GameStatusViewSet(ModelViewSet):
             actionbox.is_occupied = False
             actionbox.save()
 
-        game_status = GameStatus.objects.first()
+        game_status = GameStatus.objects.all()
+        game_status.round += 1
         game_status.turn = 1
         game_status.save()
 
@@ -234,11 +235,16 @@ class FamilyPositionViewSet(ModelViewSet):
             elif action_id == 2:
                 # perform_action_2()
                 pass
+            #곡식종자
             elif action_id == 10:
                 response = grain_seed(player)
             # 숲
             elif action_id == 11:
                 response = forest(player)
+            #집개조
+            elif action_id == 21:
+                response = house_upgrade(player)
+
             
             # 코드가 404면 -> 해당 행동이 거부됨 ->함수 종료
             if response.status_code == 404:
