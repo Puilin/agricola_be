@@ -18,6 +18,7 @@ class Player(models.Model):
 
 class PlayerBoardStatus(models.Model):
     player_id = models.ForeignKey('Player', on_delete=models.CASCADE)
+    score = models.IntegerField(null=False, default=0)
 
 class BoardPosition(models.Model):
     board_id = models.ForeignKey('PlayerBoardStatus', on_delete=models.CASCADE)
