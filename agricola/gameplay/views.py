@@ -140,17 +140,19 @@ class GameStatusViewSet(ModelViewSet):
     
     @action(detail=False, methods=['put'])
     def round_end(self, request):
-        player = Player.objects.all()
-        player.remain_num = player.adult_num
-        player.save()
+        players = Player.objects.all()
+        for player in players:
+            player.remain_num = player.adult_num
+            player.save()
 
-        actionbox = ActionBox.objects.all()
-        if(actionbox.is_res):
-            actionbox.acc_resource += actionbox.add_resource
-        else:
-            actionbox.acc_resource = actionbox.add_resource
-        actionbox.is_occupied = False
-        actionbox.save()
+        actionboxes = ActionBox.objects.all()
+        for actionbox in actionboxes:
+            if actionbox.is_res:
+                actionbox.acc_resource += actionbox.add_resource
+            else:
+                actionbox.acc_resource = actionbox.add_resource
+            actionbox.is_occupied = False
+            actionbox.save()
 
         game_status = GameStatus.objects.first()
         game_status.turn = 1
@@ -160,12 +162,38 @@ class GameStatusViewSet(ModelViewSet):
     def priod_end(self, request):
         players = Player.objects.all()
         for player in players:
-            playerResource = PlayerResource.objects.get(player_id = player.id)
             playerBoard = PlayerBoardStatus.objects.get(player_id = player.id)
-            boardPosition =BoardPosition.objects.get()
-        # (수확1번) 1️⃣,2️⃣작물이 심어져 있는 밭에서 곡식/채소 1개씩 수확
-        # (수확2번) 1️⃣,2️⃣가족 먹여살리기
-        # (수확3번) 1️⃣,2️⃣동물 번식
+            boardPositions = BoardPosition.objects.filter(player_id = playerBoard.player_id)
+            # (수확1번) 1️⃣,2️⃣작물이 심어져 있는 밭에서 곡식/채소 1개씩 수확
+            for boardPosition in boardPositions:
+                if boardPosition.is_fam and boardPosition.vege_num != 0:
+                    boardPosition.vege_num -= 1
+                    playerResource = PlayerResource.objects.get(player_id=player.id, resource_id=boardPosition.vege_id)
+                    playerResource.resource_num += 1
+                    playerResource.save()
+            # (수확2번) 1️⃣,2️⃣가족 먹여살리기
+            playerfood = PlayerResource.objects.get(player_id=player.id, resource_id=10)
+            consume = player.adult_num*2 + player.baby_num*2
+            playerfood.resource_num -= consume
+            hungrytoken = PlayerResource.objects.get(player_id=player.id, resource_id=11)
+            while playerfood.resource_num < 0 :
+                hungrytoken += 1
+                playerfood += 1
+            playerfood.save()
+            hungrytoken.save()
+            # (수확3번) 1️⃣,2️⃣동물 번식
+            sheep = PlayerResource.objects.get(player_id=player.id, resource_id=7)
+            if sheep.resource_num >= 2:
+                sheep.resource_num += 1
+            sheep.save()
+            pig = PlayerResource.objects.get(player_id=player.id, resource_id=8)
+            if pig.resource_num >= 2:
+                pig.resource_num += 1
+            pig.save()
+            cow = PlayerResource.objects.get(player_id=player.id, resource_id=9)
+            if cow.resource_num >= 2:
+                cow.resource_num += 1
+            cow.save()
 
 
 class FamilyPositionViewSet(ModelViewSet):
