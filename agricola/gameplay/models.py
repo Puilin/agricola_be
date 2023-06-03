@@ -20,7 +20,7 @@ class PlayerBoardStatus(models.Model):
     player_id = models.ForeignKey('Player', on_delete=models.CASCADE)
 
 class BoardPosition(models.Model):
-    board_id = models.ForeignKey('PlayerBoardStatus', on_delete=models.CASCADE)
+    player_id = models.ForeignKey('PlayerBoardStatus', on_delete=models.CASCADE)
     position = models.IntegerField(null=False)
     position_name = models.CharField(max_length=6, null=False, default='빈칸')
     is_fam = models.BooleanField(null=False, default=False)
