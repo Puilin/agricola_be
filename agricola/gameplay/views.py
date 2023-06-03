@@ -140,7 +140,7 @@ class GameStatusViewSet(ModelViewSet):
     @action(detail=False, methods=['put'])
     def round_end(self, request):
         player = Player.objects.all()
-        player.reamin_num = player.adult_num
+        player.remain_num = player.adult_num
         player.save()
 
         actionbox = ActionBox.objects.all()
@@ -153,6 +153,15 @@ class GameStatusViewSet(ModelViewSet):
         game_status = GameStatus.objects.first()
         game_status.turn = 1
         game_status.save()
+
+    @action(detail=False, methods=['put'])
+    def priod_end(self, request):
+        player = Player.objects.all()
+        playerResource = PlayerResource.objects.all()
+        playerBoard = PlayerBoardStatus.objects.all()
+        # (수확1번) 1️⃣,2️⃣작물이 심어져 있는 밭에서 곡식/채소 1개씩 수확
+        # (수확2번) 1️⃣,2️⃣가족 먹여살리기
+        # (수확3번) 1️⃣,2️⃣동물 번식
 
 
 class FamilyPositionViewSet(ModelViewSet):
