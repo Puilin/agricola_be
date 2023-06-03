@@ -147,7 +147,7 @@ class GameStatusViewSet(ModelViewSet):
         if(actionbox.is_res):
             actionbox.acc_resource += actionbox.add_resource
         else:
-            actionbox.acc_resource == actionbox.add_resource
+            actionbox.acc_resource = actionbox.add_resource
         actionbox.save()
 
         game_status = GameStatus.objects.first()
