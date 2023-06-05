@@ -30,17 +30,13 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['*']
 CORS_ORIGIN_ALLOW_ALL = True
-CORS_ALLOWED_ORIGINS = [
-    'http://localhost:3000',
-    'https://jazzy-trifle-183e7d.netlify.app',
-    'http://3.36.7.233:3000',
-    'http://ec2-3-36-7-233.ap-northeast-2.compute.amazonaws.com',
-]
+CORS_ALLOWED_ORIGINS = True
+CORS_ALLOW_CREDENTIALS = True
 CORS_ORIGIN_WHITELIST = [
     'http://localhost:3000',
-    'https://jazzy-trifle-183e7d.netlify.app',
     'http://3.36.7.233:3000',
     'http://ec2-3-36-7-233.ap-northeast-2.compute.amazonaws.com',
+    'https://jazzy-trifle-183e7d.netlify.app',
 ]
 
 
@@ -69,7 +65,6 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'corsheaders.middleware.CorsMiddleware',
 ]
 
 ROOT_URLCONF = 'agricola.urls'
