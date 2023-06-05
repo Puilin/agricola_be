@@ -123,7 +123,7 @@ class FencePositionViewSet(ModelViewSet):
         while (len(fence_array) > 0): # 유효한 울타리인지 검사
             new_position = self.is_in_valid(fence_array, valid_position)
             if new_position == False:
-                return Response({'error': 'Wrong Position.'}, status=status.HTTP_403_FORBIDDEN)
+                return Response({'error': 'wrong position.'}, status=status.HTTP_403_FORBIDDEN)
 
             else:
                 ex_fence_array.extend(new_position)
@@ -161,8 +161,7 @@ class FencePositionViewSet(ModelViewSet):
                 fence_position.bottom = bottom
                 fence_position.save()
 
-        return Response("fence update complete.", status=status.HTTP_200_OK)
-
+        return Response({"message": "fence update complete."}, status=status.HTTP_200_OK)
 class PeriodCardViewSet(ModelViewSet):
     queryset = PeriodCard.objects.all()
     serializer_class = PeriodCardSerializer
