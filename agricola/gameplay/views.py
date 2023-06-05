@@ -9,6 +9,7 @@ from rest_framework import status
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 from .actions import *
+import json
 
 # Create your views here.
 class AccountViewSet(ModelViewSet):
@@ -114,8 +115,8 @@ class FencePositionViewSet(ModelViewSet):
     def build_fence(self, request): # { "player_id": 12, "fence_array": [[1, 2, 7], [6]] }
         player_id = request.data.get('player_id')
         board_id = self.get_boardid_with_playerid(player_id)
-
-        fence_array = request.data.get('fence_array') # 추가하고 싶은 울타리들의 포지션 배열
+        fst_fence_array = request.data.get('fence_array') # 추가하고 싶은 울타리들의 포지션 배열
+        fence_array = fst_fence_array
         ex_fence_array = self.get_fencepositions_with_boardid(board_id) # 기존에 가지고 있던 울타리들의 포지션 배열
         invalid_position = self.get_invalid_position(board_id)  # 집, 밭 포지션
         valid_position = self.get_valid_position(ex_fence_array, invalid_position) # fence_array에 포함되어야 하는 포지션
@@ -130,11 +131,11 @@ class FencePositionViewSet(ModelViewSet):
                 valid_position = self.get_valid_position(ex_fence_array, invalid_position)
                 fence_array = [sublist for sublist in fence_array if sublist != new_position]
 
-        fence_array = request.data.get('fence_array')
+        fence_array = fst_fence_array
 
         # db에 추가
         for fences in fence_array:
-            fences = fences.sort()
+            print(f'fences: {fences} fences type : {type(fences)}')
             for i in range(len(fences)):
                 left, right, top, bottom = [True, True, True, True]
                 if (int(fences[i]) % 3 != 0) & ((int(fences[i]) + 1) in fences): # 오른쪽 끝 제외
@@ -147,14 +148,14 @@ class FencePositionViewSet(ModelViewSet):
                     top = False
 
                 # 해당 포지션의 type을 3으로 바꿈
-                position_id = self.get_positionid(board_id, fences[i])
+                position_id = self.get_positionid(board_id, fences[i]) # board_id가 board_id인 객체 중 position이 fences[i]인 객체의 id
                 board_position = BoardPosition.objects.get(id=position_id)
                 board_position.position_type = 3
                 board_position.save()
 
                 # FencePosition 개체 생성 및 속성 설정
                 fence_position = FencePosition()
-                fence_position.position_id = position_id
+                fence_position.position_id = board_position
                 fence_position.left = left
                 fence_position.right = right
                 fence_position.top = top
