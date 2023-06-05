@@ -422,6 +422,34 @@ class PlayerResourceViewSet(ModelViewSet):
 
             serializer = PlayerResourceSerializer(player_resource)
             return Response(serializer.data)
+
+    @swagger_auto_schema(
+        method='get',
+        manual_parameters=[
+            openapi.Parameter('player_id', openapi.IN_QUERY, description='Player ID', type=openapi.TYPE_INTEGER),
+            openapi.Parameter('type', openapi.IN_QUERY, description='adult or baby', type=openapi.TYPE_STRING, required=False),
+        ]
+    )
+    @action(detail=False, methods=['get'])
+    def get_family_resource(self, request):
+        player_id = request.query_params.get('player_id')
+        type = request.query_params.get('type')
+
+        try:
+            player = Player.objects.get(player_id=player_id)
+            adult = player.adult_num
+            baby = player.baby_num
+        except PlayerResource.DoesNotExist:
+            return Response({'message': 'Player not found.'}, status=404)
+        
+        if type == None:
+            return Response({'adult':adult, 'baby':baby})
+        elif type == "adult":
+            return Response({'adult':adult})
+        elif type == 'baby':
+            return Response({'baby':baby})
+        else:
+            return Response({'message': 'Invalid type'}, status=400)
     
     @swagger_auto_schema(
         method='get',
