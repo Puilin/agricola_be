@@ -28,6 +28,8 @@ SECRET_KEY = 'django-insecure-2ybt2j8k#6k-jg*41s0_tguu@%@6st!vy3(y=#v*)8=a=fenb-
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
+CORS_ORIGIN_ALLOW_ALL = True
+CORS_ALLOW_ALL_ORIGINS = True
 ALLOWED_HOSTS = [
     '127.0.0.1',
     'localhost',
@@ -36,8 +38,6 @@ ALLOWED_HOSTS = [
     'https://jazzy-trifle-183e7d.netlify.app',
     'ip-172-31-10-22.ap-northeast-2.compute.internal'
 ]
-CORS_ORIGIN_ALLOW_ALL = True
-# CORS_ALLOWED_ORIGINS = 
 
 # Application definition
 
