@@ -440,18 +440,18 @@ class PlayerResourceViewSet(ModelViewSet):
         type = request.query_params.get('type')
 
         try:
-            player = Player.objects.get(player_id=player_id)
+            player = Player.objects.get(id=player_id)
             adult = player.adult_num
             baby = player.baby_num
         except Player.DoesNotExist:
             return Response({'message': 'Player not found.'}, status=404)
         
         if type == None:
-            return Response({'adult':adult, 'baby':baby})
+            return Response({'player_id':int(player_id), 'adult':adult, 'baby':baby})
         elif type == "adult":
-            return Response({'adult':adult})
+            return Response({'player_id':int(player_id), 'adult':adult})
         elif type == 'baby':
-            return Response({'baby':baby})
+            return Response({'player_id':int(player_id), 'baby':baby})
         else:
             return Response({'message': 'Invalid type'}, status=400)
     
@@ -475,22 +475,24 @@ class PlayerResourceViewSet(ModelViewSet):
             return Response({'message': 'Player not found.'}, status=404)
         
         if type == None:
-            return Response({'cowshed':cowshed, 'fence':fence})
+            return Response({'player_id':int(player_id), 'cowshed':cowshed, 'fence':fence})
         elif type == "cowshed":
-            return Response({'cowshed':cowshed})
+            return Response({'player_id':int(player_id), 'cowshed':cowshed})
         elif type == 'fence':
-            return Response({'fence':fence})
+            return Response({'player_id':int(player_id), 'fence':fence})
         else:
             return Response({'message': 'Invalid type'}, status=400)
 
-    
     @swagger_auto_schema(
         method='put',
-        manual_parameters=[
-            openapi.Parameter('player_id', openapi.IN_BODY, description='Player ID', type=openapi.TYPE_INTEGER),
-            openapi.Parameter('resource_id', openapi.IN_BODY, description='Resource ID', type=openapi.TYPE_INTEGER),
-            openapi.Parameter('num', openapi.IN_BODY, description='Number to add', type=openapi.TYPE_INTEGER),
-        ]
+        request_body=openapi.Schema(
+            type=openapi.TYPE_OBJECT,
+            properties={
+                'player_id': openapi.Schema(type=openapi.TYPE_INTEGER),
+                'resource_id': openapi.Schema(type=openapi.TYPE_INTEGER),
+                'num': openapi.Schema(type=openapi.TYPE_INTEGER)
+            }
+        )
     )
     @action(detail=False, methods=['put'])
     def update_player_resource(self, request):
@@ -516,11 +518,14 @@ class PlayerResourceViewSet(ModelViewSet):
 
     @swagger_auto_schema(
         method='put',
-        manual_parameters=[
-            openapi.Parameter('player_id', openapi.IN_BODY, description='Player ID', type=openapi.TYPE_INTEGER),
-            openapi.Parameter('type', openapi.IN_BODY, description='cowshed or fence', type=openapi.TYPE_STRING),
-            openapi.Parameter('num', openapi.IN_BODY, description='Number to plus or minus', type=openapi.TYPE_INTEGER),
-        ]
+        request_body=openapi.Schema(
+            type=openapi.TYPE_OBJECT,
+            properties={
+                'player_id': openapi.Schema(type=openapi.TYPE_INTEGER),
+                'type': openapi.Schema(type=openapi.TYPE_STRING),
+                'num': openapi.Schema(type=openapi.TYPE_INTEGER)
+            }
+        )
     )
     @action(detail=False, methods=['put'])
     def update_agricultural_resource(self, request):
@@ -542,18 +547,22 @@ class PlayerResourceViewSet(ModelViewSet):
                 if type == 'cowshed' and cowshed >= -num:
                     board.cowshed_num += num
                     board.save()
+                    return Response({'player_id':int(player_id), 'cowshed':board.cowshed_num})
                 elif type == 'fence' and fence >= -num:
                     board.fence_num += num
                     board.save()
+                    return Response({'player_id':int(player_id), 'fence':board.fence_num})
                 else:
                     return Response({'message': 'resource cannot be negative'}, status=400)
             else:
                 if type == 'cowshed':
                     board.cowshed_num += num
                     board.save()
+                    return Response({'player_id':int(player_id), 'cowshed':board.cowshed_num})
                 elif type == 'fence':
                     board.fence_num += num
                     board.save()
+                    return Response({'player_id':int(player_id), 'fence':board.fence_num})
         except PlayerBoardStatus.DoesNotExist:
             return Response({'message': 'PlayerBoardStatus not found.'}, status=404)
         
