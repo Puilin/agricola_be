@@ -75,14 +75,14 @@ class FencePositionViewSet(ModelViewSet):
         return board_id
 
     def get_fencepositions_with_boardid(self, board_id):
-        positions = BoardPosition.objects.filter(board_id = board_id, type=3).values_list('position', flat=True)
+        positions = BoardPosition.objects.filter(board_id = board_id, position_type=3).values_list('position', flat=True)
         positions = list(positions)
         return positions # int 배열
 
     def get_invalid_position(self, board_id): # 집, 밭 포지션 가져오기
-        position_query = BoardPosition.objects.filter(board_id=board_id, type=2).values_list('position', flat=True)
+        position_query = BoardPosition.objects.filter(board_id=board_id, position_type=2).values_list('position', flat=True)
         positions = list(position_query)
-        position_query = BoardPosition.objects.filter(board_id=board_id, type=1).values_list('position', flat=True)
+        position_query = BoardPosition.objects.filter(board_id=board_id, position_type=1).values_list('position', flat=True)
         positions.extend(position_query)
         return positions
 
@@ -149,7 +149,7 @@ class FencePositionViewSet(ModelViewSet):
                 # 해당 포지션의 type을 3으로 바꿈
                 position_id = self.get_positionid(board_id, fences[i])
                 board_position = BoardPosition.objects.get(id=position_id)
-                board_position.type = 3
+                board_position.position_type = 3
                 board_position.save()
 
                 # FencePosition 개체 생성 및 속성 설정
