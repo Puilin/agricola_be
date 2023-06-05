@@ -45,8 +45,6 @@ def grain_seed(player):
 
 def house_upgrade(player):
     house_action = ActionBox.objects.get(id=21)
-    my_board = PlayerBoardStatus.objects.get(player_id=player.id)
-    reed = PlayerResource.objects.get(player_id=player.id, resource_id=3)
     #집개조 칸에 누군가 있으면
     if house_action.is_occupied:
         return Response({'detail': 'There\'s someone else in house upgrade'}, status=404)
@@ -54,7 +52,30 @@ def house_upgrade(player):
     house_action.is_occupied = True
     house_action.save()
 
+    my_board = PlayerBoardStatus.objects.get(player_id=player.id)
+    reed = PlayerResource.objects.get(player_id=player.id, resource_id=3)
     #나무집 -> 흙집
+    if my_board.house_type == 0:
+        soil = PlayerResource.objects.get(player_id=player.id, resource_id=2)
+        if reed.resource_num >= my_board.house_num and soil >= my_board.house_num:
+            reed.resource_num -= my_board.house_num
+            soil.resource_num -= my_board.house_num
+            my_board.house_type = 1
+        else:
+            return Response({'detail': 'Not enough resources'}, status=404)
+    #흑집 -> 돌집    
+    elif my_board.house_type == 1:
+        stone = PlayerResource.objects.get(player_id=player.id, resource_id=4)
+        if reed >= my_board.house_num and soil >= my_board.house_num:
+            reed.resource_num -= my_board.house_num
+            stone.resource_num -= my_board.house_num
+            my_board.house_type = 2
+        else:
+            return Response({'detail': 'Not enough resources'}, status=404)
+    reed.save()
+    soil.save()
+    stone.save()
+    my_board.save()
 
-    #흑집 -> 돌집
-    return
+    serializer = PlayerBoardStatusSerializer(my_board)
+    return Response(serializer.data)

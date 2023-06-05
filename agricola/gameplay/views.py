@@ -223,6 +223,11 @@ class MainFacilityCardViewSet(ModelViewSet):
     queryset = MainFacilityCard.objects.all()
     serializer_class = MainFacilityCardSerializer
 
+    @action(detail=False, methods=['post'])
+    def get_mainfacility(self, request):
+        return
+
+
 class ActionBoxViewSet(ModelViewSet):
     queryset = ActionBox.objects.all()
     serializer_class = ActionBoxSerializer
