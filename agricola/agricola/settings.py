@@ -31,6 +31,7 @@ DEBUG = True
 ALLOWED_HOSTS = [
     'http://localhost:3000',
     'http://3.36.7.233:3000',
+    'http://3.36.7.233',
     'http://ec2-3-36-7-233.ap-northeast-2.compute.amazonaws.com',
     'https://jazzy-trifle-183e7d.netlify.app',
 ]
@@ -39,6 +40,7 @@ CORS_ALLOW_CREDENTIALS = True
 CORS_ORIGIN_WHITELIST = [
     'http://localhost:3000',
     'http://3.36.7.233:3000',
+    'http://3.36.7.233',
     'http://ec2-3-36-7-233.ap-northeast-2.compute.amazonaws.com',
     'https://jazzy-trifle-183e7d.netlify.app',
 ]
