@@ -32,8 +32,8 @@ ALLOWED_HOSTS = ['*']
 CORS_ORIGIN_ALLOW_ALL = True
 CORS_ALLOWED_ORIGINS = [
     'http://localhost:3000',
-    'https://jazzy-trifle-183e7d.netlify.app',
     'http://3.36.7.233:3000',
+    'https://jazzy-trifle-183e7d.netlify.app',
 ]
 
 
