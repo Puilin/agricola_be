@@ -16,6 +16,29 @@ class AccountViewSet(ModelViewSet):
     queryset = Account.objects.all()
     serializer_class = AccountSerializer
 
+    @action(detail=False, methods=['POST'])
+    def login(self, request): # { 'user_id' : admin, 'user_pw': admin }
+        input_id = request.data.get('user_id')
+        input_pw = request.data.get('user_pw')
+
+        try:
+            # Account 테이블에서 id가 같은 객체 가져오기
+            account = Account.objects.get(user_id=input_id)
+        except Account.DoesNotExist:
+            return Response({'message': 'Wrong ID.'}, status=status.HTTP_404_NOT_FOUND)
+
+        if account.user_pw != input_pw:
+            return Response({'message': 'Wrong Password.'}, status=status.HTTP_401_UNAUTHORIZED)
+
+        try:
+            # Player 테이블에서 해당 계정이 갖고 있는 객체 가져오기
+            player = Player.objects.get(user_id=account.email)
+        except:
+            return Response({'message': 'Player Not Exist.'}, status=status.HTTP_404_NOT_FOUND)
+
+        player_id = player.id
+        return Response({'message': 'Login Complete.', 'player_id': player_id}, status=status.HTTP_200_OK)
+
 class PlayerViewSet(ModelViewSet):
     queryset = Player.objects.all()
     serializer_class = PlayerSerializer
