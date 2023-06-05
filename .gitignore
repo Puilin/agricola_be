@@ -11,3 +11,5 @@ Pipfile.lock
 .venv
 
 .DS_Store
+
+key.pem
