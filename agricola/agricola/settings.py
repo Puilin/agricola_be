@@ -33,6 +33,7 @@ ALLOWED_HOSTS = [
     '3.36.7.233',
     'ec2-3-36-7-233.ap-northeast-2.compute.amazonaws.com',
     'https://jazzy-trifle-183e7d.netlify.app',
+    'ip-172-31-10-22.ap-northeast-2.compute.internal'
 ]
 CORS_ORIGIN_ALLOW_ALL = True
 # CORS_ALLOWED_ORIGINS = 
