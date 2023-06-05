@@ -75,14 +75,14 @@ class FencePositionViewSet(ModelViewSet):
         return board_id
 
     def get_fencepositions_with_boardid(self, board_id):
-        positions = BoardPosition.objects.filter(board_id = board_id, type=3).values_list('position', flat=True)
+        positions = BoardPosition.objects.filter(board_id = board_id, position_type=3).values_list('position', flat=True)
         positions = list(positions)
         return positions # int 배열
 
     def get_invalid_position(self, board_id): # 집, 밭 포지션 가져오기
-        position_query = BoardPosition.objects.filter(board_id=board_id, type=2).values_list('position', flat=True)
+        position_query = BoardPosition.objects.filter(board_id=board_id, position_type=2).values_list('position', flat=True)
         positions = list(position_query)
-        position_query = BoardPosition.objects.filter(board_id=board_id, type=1).values_list('position', flat=True)
+        position_query = BoardPosition.objects.filter(board_id=board_id, position_type=1).values_list('position', flat=True)
         positions.extend(position_query)
         return positions
 
@@ -123,7 +123,7 @@ class FencePositionViewSet(ModelViewSet):
         while (len(fence_array) > 0): # 유효한 울타리인지 검사
             new_position = self.is_in_valid(fence_array, valid_position)
             if new_position == False:
-                return Response({'error': 'Wrong Position.'}, status=status.HTTP_403_FORBIDDEN)
+                return Response({'error': 'wrong position.'}, status=status.HTTP_403_FORBIDDEN)
 
             else:
                 ex_fence_array.extend(new_position)
@@ -149,7 +149,7 @@ class FencePositionViewSet(ModelViewSet):
                 # 해당 포지션의 type을 3으로 바꿈
                 position_id = self.get_positionid(board_id, fences[i])
                 board_position = BoardPosition.objects.get(id=position_id)
-                board_position.type = 3
+                board_position.position_type = 3
                 board_position.save()
 
                 # FencePosition 개체 생성 및 속성 설정
@@ -161,8 +161,7 @@ class FencePositionViewSet(ModelViewSet):
                 fence_position.bottom = bottom
                 fence_position.save()
 
-        return Response("fence update complete.", status=status.HTTP_200_OK)
-
+        return Response({"message": "fence update complete."}, status=status.HTTP_200_OK)
 class PeriodCardViewSet(ModelViewSet):
     queryset = PeriodCard.objects.all()
     serializer_class = PeriodCardSerializer
@@ -222,6 +221,11 @@ class JobCardViewSet(ModelViewSet):
 class MainFacilityCardViewSet(ModelViewSet):
     queryset = MainFacilityCard.objects.all()
     serializer_class = MainFacilityCardSerializer
+
+    @action(detail=False, methods=['post'])
+    def get_mainfacility(self, request):
+        return
+
 
 class ActionBoxViewSet(ModelViewSet):
     queryset = ActionBox.objects.all()

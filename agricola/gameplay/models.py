@@ -22,11 +22,12 @@ class PlayerBoardStatus(models.Model):
     house_type = models.IntegerField(null=False, default=0)
     house_num = models.IntegerField(null=False, default=0)
     cowshed_num = models.IntegerField(null=False, default=0)
+    fence_num = models.IntegerField(null=False, default=0)
 
 class BoardPosition(models.Model):
-    player_id = models.ForeignKey('PlayerBoardStatus', on_delete=models.CASCADE)
+    board_id = models.ForeignKey('PlayerBoardStatus', on_delete=models.CASCADE)
     position = models.IntegerField(null=False)
-    position_name = models.IntegerField(null=False, default=0)
+    position_type = models.IntegerField(null=False, default=0)
     is_fam = models.BooleanField(null=False, default=False)
     vege_type = models.IntegerField(null=False, default=0)
     vege_num = models.IntegerField(null=False, default=0)
@@ -34,7 +35,7 @@ class BoardPosition(models.Model):
     animal_num = models.IntegerField(null=False, default=0)
 
 class FencePosition(models.Model):
-    board_id = models.ForeignKey('BoardPosition', on_delete=models.CASCADE)
+    position_id = models.ForeignKey('BoardPosition', on_delete=models.CASCADE)
     left = models.BooleanField(null=False, default=False)
     top = models.BooleanField(null=False, default=False)
     right = models.BooleanField(null=False, default=False)
