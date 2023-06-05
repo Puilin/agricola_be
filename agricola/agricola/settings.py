@@ -29,27 +29,13 @@ SECRET_KEY = 'django-insecure-2ybt2j8k#6k-jg*41s0_tguu@%@6st!vy3(y=#v*)8=a=fenb-
 DEBUG = True
 
 ALLOWED_HOSTS = [
-    [
-    'http://localhost:3000',
-    'http://localhost:8000',
+    'localhost',
+    '3.36.7.233',
+    'ec2-3-36-7-233.ap-northeast-2.compute.amazonaws.com',
     'https://jazzy-trifle-183e7d.netlify.app',
-    'http://3.36.7.233',
-    'http://3.36.7.233:3000',
-    'http://3.36.7.233:8000',
-    'http://ec2-3-36-7-233.ap-northeast-2.compute.amazonaws.com',
 ]
-]
-CORS_ALLOW_ALL_ORIGINS = True
-CORS_ALLOW_CREDENTIALS = True
-CORS_ALLOWED_ORIGINS = [
-    'http://localhost:3000',
-    'http://localhost:8000',
-    'https://jazzy-trifle-183e7d.netlify.app',
-    'http://3.36.7.233',
-    'http://3.36.7.233:3000',
-    'http://3.36.7.233:8000',
-    'http://ec2-3-36-7-233.ap-northeast-2.compute.amazonaws.com',
-]
+CORS_ORIGIN_ALLOW_ALL = True
+# CORS_ALLOWED_ORIGINS = 
 
 # Application definition
 
