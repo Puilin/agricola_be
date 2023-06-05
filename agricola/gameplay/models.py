@@ -86,8 +86,8 @@ class MainFacilityCard(models.Model):
 class ActionBox(models.Model):
     card_id = models.ForeignKey('PeriodCard', null=True, on_delete=models.CASCADE)
     name = models.CharField(null=True, max_length=255)
-    acc_resource = models.IntegerField(default=0)
-    add_resource = models.IntegerField(default=0)
+    acc_resource = models.IntegerField(default=0, null=True)
+    add_resource = models.IntegerField(default=0, null=True)
     round = models.IntegerField(null=False)
     is_res = models.BooleanField(default=False)
     is_occupied = models.BooleanField(null=False, default=False)
