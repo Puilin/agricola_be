@@ -64,69 +64,101 @@ class FencePositionViewSet(ModelViewSet):
     queryset = FencePosition.objects.all()
     serializer_class = FencePositionSerializer
 
-    def get_item_ids_with_player(self, player_id): # 해당 player의 포지션들을 모두 리턴
-        items = BoardPosition.objects.filter(player_id = player_id)
-        item_position = [str(item.position) for item in items]
-        return item_position # str 배열
+    def get_positionid(self, board_id, position):
+        position_queryset = BoardPosition.objects.get(board_id=board_id, position=position)
+        position_id = position_queryset.id
+        return position_id
 
-    def get_valid_position(self, fence_list): # fence_list에 있는 포지션들의 주변 포지션을 리턴
+    def get_boardid_with_playerid(self, player_id):
+        board_queryset = PlayerBoardStatus.objects.filter(player_id = player_id)
+        board_id = board_queryset.first().id # 추후에 게임이 여러 개일 경우 어느 게임의 보드인지 구분 필요
+        return board_id
+
+    def get_fencepositions_with_boardid(self, board_id):
+        positions = BoardPosition.objects.filter(board_id = board_id, type=3).values_list('position', flat=True)
+        positions = list(positions)
+        return positions # int 배열
+
+    def get_invalid_position(self, board_id): # 집, 밭 포지션 가져오기
+        position_query = BoardPosition.objects.filter(board_id=board_id, type=2).values_list('position', flat=True)
+        positions = list(position_query)
+        position_query = BoardPosition.objects.filter(board_id=board_id, type=1).values_list('position', flat=True)
+        positions.extend(position_query)
+        return positions
+
+    def get_valid_position(self, ex_fence_list, invalid_position):  # fence_list에 있는 포지션들의 주변 포지션을 리턴
+        if not ex_fence_list:  # 기존에 설치한 울타리가 없다면
+            return list(range(1, 16))
         valid_position = []
-        for position in fence_list:
-            position = int(position)
-            valid_position.extend([position - 1, position + 1, position - 3, position + 3])
-        valid_position = [str(x) for x in valid_position if x >= 1 and x <= 15]
-        return list(set(valid_position) - set(fence_list)) # str 배열
+        for position in ex_fence_list:
+            if ((position % 3) != 0):  # 오른쪽 끝이 아니면
+                valid_position.append(position + 1)
+            if ((position % 3) != 1):  # 왼쪽 끝이 아니면
+                valid_position.append(position - 1)
+            if ((position + 3) < 16):  # 맨 밑이 아니면
+                valid_position.append(position + 3)
+            if ((position - 3) > 0):  # 맨 위가 아니면
+                valid_position.append(position - 3)
+        valid_position = list(set(valid_position) - set(ex_fence_list))
+        valid_position = list(set(valid_position) - set(invalid_position))
+        return valid_position
 
-    def is_in_valid(self, fence_array, valid_position):
+    def is_in_valid(self, fence_array, valid_position): # 울타리를 치고 싶은 포지션이 valid한지 검증
         for positions in fence_array:
             for position in positions:
                 if position in valid_position:
-                    return positions # str 배열
+                    return positions
         return False
 
     @action(detail=False, methods=['POST'])
-    def build_fence(self, request): # { "player": 12, "fence_array": [[1, 2, 7], [6]] }
-        player = request.data.get('player') # player_id
-        board_id = BoardPosition.objects.filter(player_id = player).id
+    def build_fence(self, request): # { "player_id": 12, "fence_array": [[1, 2, 7], [6]] }
+        player_id = request.data.get('player_id')
+        board_id = self.get_boardid_with_playerid(player_id)
 
         fence_array = request.data.get('fence_array') # 추가하고 싶은 울타리들의 포지션 배열
-        ex_fence_array = self.get_item_ids_with_player(player) # 기존에 가지고 있던 울타리들의 포지션 배열
-        valid_position = self.get_valid_position(ex_fence_array) # fence_array에 포함되어야 하는 포지션
+        ex_fence_array = self.get_fencepositions_with_boardid(board_id) # 기존에 가지고 있던 울타리들의 포지션 배열
+        invalid_position = self.get_invalid_position(board_id)  # 집, 밭 포지션
+        valid_position = self.get_valid_position(ex_fence_array, invalid_position) # fence_array에 포함되어야 하는 포지션
 
         while (len(fence_array) > 0): # 유효한 울타리인지 검사
-            if self.is_in_valid(fence_array, valid_position) == False:
+            new_position = self.is_in_valid(fence_array, valid_position)
+            if new_position == False:
                 return Response({'error': 'Wrong Position.'}, status=status.HTTP_403_FORBIDDEN)
 
             else:
-                new_position = self.is_in_valid(fence_array, valid_position)
-                ex_fence_array.append(new_position)
-                valid_position = self.get_valid_position(ex_fence_array)
-                fence_array = list(set(fence_array) - set(new_position))
+                ex_fence_array.extend(new_position)
+                valid_position = self.get_valid_position(ex_fence_array, invalid_position)
+                fence_array = [sublist for sublist in fence_array if sublist != new_position]
+
+        fence_array = request.data.get('fence_array')
 
         # db에 추가
         for fences in fence_array:
             fences = fences.sort()
             for i in range(len(fences)):
-                left, right, top, bottom = True
+                left, right, top, bottom = [True, True, True, True]
                 if (int(fences[i]) % 3 != 0) & ((int(fences[i]) + 1) in fences): # 오른쪽 끝 제외
                     right = False
-                if (int(fences[i]) % 3 != 1) & (int(fences[i]) - 1) in fences: # 왼쪽 끝 제외
+                if (int(fences[i]) % 3 != 1) & ((int(fences[i]) - 1) in fences): # 왼쪽 끝 제외
                     left = False
-                if (int(fences[i]) + 3 < 16) & (int(fences[i]) + 3) in fences: # 맨 밑 제외
+                if (int(fences[i]) + 3 < 16) & ((int(fences[i]) + 3) in fences): # 맨 밑 제외
                     bottom = False
-                if (int(fences[i]) - 3 > 0) & (int(fences[i]) - 3) in fences: # 맨 위 제외
+                if (int(fences[i]) - 3 > 0) & ((int(fences[i]) - 3) in fences): # 맨 위 제외
                     top = False
+
+                # 해당 포지션의 type을 3으로 바꿈
+                position_id = self.get_positionid(board_id, fences[i])
+                board_position = BoardPosition.objects.get(id=position_id)
+                board_position.type = 3
+                board_position.save()
 
                 # FencePosition 개체 생성 및 속성 설정
                 fence_position = FencePosition()
-                fence_position.board_id = board_id
-                fence_position.position = int(fences[i])
+                fence_position.position_id = position_id
                 fence_position.left = left
                 fence_position.right = right
                 fence_position.top = top
                 fence_position.bottom = bottom
-
-                # 개체 저장
                 fence_position.save()
 
         return Response("fence update complete.", status=status.HTTP_200_OK)
