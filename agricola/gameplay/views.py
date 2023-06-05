@@ -427,20 +427,79 @@ class PlayerResourceViewSet(ModelViewSet):
 
             serializer = PlayerResourceSerializer(player_resource)
             return Response(serializer.data)
+
+    @swagger_auto_schema(
+        method='get',
+        manual_parameters=[
+            openapi.Parameter('player_id', openapi.IN_QUERY, description='Player ID', type=openapi.TYPE_INTEGER),
+            openapi.Parameter('type', openapi.IN_QUERY, description='adult or baby', type=openapi.TYPE_STRING, required=False),
+        ]
+    )
+    @action(detail=False, methods=['get'])
+    def get_family_resource(self, request):
+        player_id = request.query_params.get('player_id')
+        type = request.query_params.get('type')
+
+        try:
+            player = Player.objects.get(id=player_id)
+            adult = player.adult_num
+            baby = player.baby_num
+        except Player.DoesNotExist:
+            return Response({'message': 'Player not found.'}, status=404)
+        
+        if type == None:
+            return Response({'player_id':int(player_id), 'adult':adult, 'baby':baby})
+        elif type == "adult":
+            return Response({'player_id':int(player_id), 'adult':adult})
+        elif type == 'baby':
+            return Response({'player_id':int(player_id), 'baby':baby})
+        else:
+            return Response({'message': 'Invalid type'}, status=400)
     
     @swagger_auto_schema(
         method='get',
         manual_parameters=[
             openapi.Parameter('player_id', openapi.IN_QUERY, description='Player ID', type=openapi.TYPE_INTEGER),
-            openapi.Parameter('resource_id', openapi.IN_QUERY, description='Resource ID', type=openapi.TYPE_INTEGER),
-            openapi.Parameter('num_to_add', openapi.IN_QUERY, description='Number to add', type=openapi.TYPE_INTEGER),
+            openapi.Parameter('type', openapi.IN_QUERY, description='cowshed or fence', type=openapi.TYPE_STRING, required=False),
         ]
     )
     @action(detail=False, methods=['get'])
-    def update_player_resource(self, request):
+    def get_agricultural_resource(self, request):
         player_id = request.query_params.get('player_id')
-        resource_id = request.query_params.get('resource_id')
-        num_to_add = int(request.query_params.get('num_to_add', 0))
+        type = request.query_params.get('type')
+
+        try:
+            board = PlayerBoardStatus.objects.get(player_id=player_id)
+            cowshed = board.cowshed_num
+            fence = board.fence_num
+        except PlayerBoardStatus.DoesNotExist:
+            return Response({'message': 'Player not found.'}, status=404)
+        
+        if type == None:
+            return Response({'player_id':int(player_id), 'cowshed':cowshed, 'fence':fence})
+        elif type == "cowshed":
+            return Response({'player_id':int(player_id), 'cowshed':cowshed})
+        elif type == 'fence':
+            return Response({'player_id':int(player_id), 'fence':fence})
+        else:
+            return Response({'message': 'Invalid type'}, status=400)
+
+    @swagger_auto_schema(
+        method='put',
+        request_body=openapi.Schema(
+            type=openapi.TYPE_OBJECT,
+            properties={
+                'player_id': openapi.Schema(type=openapi.TYPE_INTEGER),
+                'resource_id': openapi.Schema(type=openapi.TYPE_INTEGER),
+                'num': openapi.Schema(type=openapi.TYPE_INTEGER)
+            }
+        )
+    )
+    @action(detail=False, methods=['put'])
+    def update_player_resource(self, request):
+        player_id = request.data.get('player_id')
+        resource_id = request.data.get('resource_id')
+        num_to_add = int(request.data.get('num', 0))
 
         try:
             player_resource = PlayerResource.objects.get(player_id=player_id, resource_id=resource_id)
@@ -457,3 +516,55 @@ class PlayerResourceViewSet(ModelViewSet):
 
         serializer = PlayerResourceSerializer(player_resource)
         return Response(serializer.data)
+
+    @swagger_auto_schema(
+        method='put',
+        request_body=openapi.Schema(
+            type=openapi.TYPE_OBJECT,
+            properties={
+                'player_id': openapi.Schema(type=openapi.TYPE_INTEGER),
+                'type': openapi.Schema(type=openapi.TYPE_STRING),
+                'num': openapi.Schema(type=openapi.TYPE_INTEGER)
+            }
+        )
+    )
+    @action(detail=False, methods=['put'])
+    def update_agricultural_resource(self, request):
+        player_id = request.data.get('player_id')
+        type = request.data.get('type')
+        num = int(request.data.get('num'))
+
+        if type == None:
+            return Response({'message': 'Must specify type'}, status=400)
+        if num == None:
+            return Response({'message': 'Must specify num'}, status=400)
+        
+        try:
+            board = PlayerBoardStatus.objects.get(player_id=player_id)
+            cowshed = board.cowshed_num
+            fence = board.fence_num
+
+            if num < 0:
+                if type == 'cowshed' and cowshed >= -num:
+                    board.cowshed_num += num
+                    board.save()
+                    return Response({'player_id':int(player_id), 'cowshed':board.cowshed_num})
+                elif type == 'fence' and fence >= -num:
+                    board.fence_num += num
+                    board.save()
+                    return Response({'player_id':int(player_id), 'fence':board.fence_num})
+                else:
+                    return Response({'message': 'resource cannot be negative'}, status=400)
+            else:
+                if type == 'cowshed':
+                    board.cowshed_num += num
+                    board.save()
+                    return Response({'player_id':int(player_id), 'cowshed':board.cowshed_num})
+                elif type == 'fence':
+                    board.fence_num += num
+                    board.save()
+                    return Response({'player_id':int(player_id), 'fence':board.fence_num})
+        except PlayerBoardStatus.DoesNotExist:
+            return Response({'message': 'PlayerBoardStatus not found.'}, status=404)
+        
+        

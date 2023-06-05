@@ -12,4 +12,7 @@ Pipfile.lock
 
 .DS_Store
 
+
 .idea/workspace.xml
+
+key.pem
