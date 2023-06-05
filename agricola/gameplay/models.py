@@ -22,6 +22,7 @@ class PlayerBoardStatus(models.Model):
     house_type = models.IntegerField(null=False, default=0)
     house_num = models.IntegerField(null=False, default=0)
     cowshed_num = models.IntegerField(null=False, default=0)
+    fence_num = models.IntegerField(null=False, default=0)
 
 class BoardPosition(models.Model):
     board_id = models.ForeignKey('PlayerBoardStatus', on_delete=models.CASCADE)
