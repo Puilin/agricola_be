@@ -1,71 +1,59 @@
-import sys
-sys.path.append('/Users/hdy/Documents/4_1/sg/be/agricola')
+# unit test: get_family_resource
 
-from django.test import TestCase
-import time
 import os
-import django
+from django.conf import settings
 
-from models import *
-from rest_framework.response import Response
-from rest_framework import status
+os.environ['DJANGO_SETTINGS_MODULE'] = 'agricola.settings'
+settings.configure()
 
+import sys
+import unittest
+from django.test import RequestFactory, TestCase
 
-class FenceBuilderTestCase(TestCase):
+sys.path.append('/Users/hong_yehee/Desktop/django/be/agricola')
+from agricola.gameplay.views import PlayerResourceViewSet
+
+class PlayerResourceViewTestCase(TestCase):
     def setUp(self):
-        # 테스트에 필요한 초기 설정을 수행합니다.
-        os.environ['DJANGO_SETTINGS_MODULE'] = 'agricola.settings'
-        django.setup()
+        self.factory = RequestFactory()
+        self.view = PlayerResourceViewSet()
 
-        self.fence_position = FencePosition()
+    def test_get_family_resource(self):
+        # query parameters로 request 생성
+        query_params = {'player_id': 1, 'type': 'adult'}
+        request = self.factory.get('/path/to/view/', data=query_params)
 
-        # 임시 데이터베이스에 더미데이터 추가
-        self.player_board_status = PlayerBoardStatus()
-        self.player_board_status.player_id = 1
-        self.player_board_status.save()
+        # view의 get_family_resource를 call
+        response = self.view.get_family_resource(request)
 
-        for i in range(1, 16): # 1~15
-            self.board_position = BoardPosition()
-            self.board_position.board_id = self.player_board_status.id
-            self.board_position.position = i
-            if i in [1, 2]:
-                self.board_position.position_type = 1
-                self.board_position.is_fam = True
-            else:
-                self.board_position.position_type = 0
-                self.board_position.is_fam = False
-            self.board_position.save()
+        # 예상 결과와 실제 결과 비교
+        expected_response = {'player_id': 1, 'adult': 5}
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data, expected_response)
 
-    def test_build_fence(self):
+        # query parameters가 다른 경우
+        query_params = {'player_id': 2, 'type': 'baby'}
+        request = self.factory.get('/path/to/view/', data=query_params)
+        response = self.view.get_family_resource(request)
+        expected_response = {'player_id': 2, 'baby': 3}
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data, expected_response)
 
-        # 테스트할 함수의 입력 데이터를 준비합니다.
-        testcase = [{"player_id": 1, "fence_array": [[5, 6, 9], [8]]},
-                    {"player_id": 1, "fence_array": [[2, 5, 8]]},
-                    {"player_id": 1, "fence_array": [[13, 14, 8]]},
-                    {"player_id": 1, "fence_array": [[4], [7], [10]]}]
+        # invalid type인 경우
+        query_params = {'player_id': 3, 'type': 'invalid'}
+        request = self.factory.get('/path/to/view/', data=query_params)
+        response = self.view.get_family_resource(request)
+        expected_response = {'message': 'Invalid type'}
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.data, expected_response)
 
-        expected_result = [Response({"message": "fence update complete."}, status=status.HTTP_200_OK),
-                           Response({'error': 'wrong position.'}, status=status.HTTP_403_FORBIDDEN),
-                           Response({'error': 'wrong position.'}, status=status.HTTP_403_FORBIDDEN),
-                           Response({"message": "fence update complete."}, status=status.HTTP_200_OK)]
+        # 존재하지 않는 player_id인 경우
+        query_params = {'player_id': 999, 'type': 'adult'}
+        request = self.factory.get('/path/to/view/', data=query_params)
+        response = self.view.get_family_resource(request)
+        expected_response = {'message': 'Player not found.'}
+        self.assertEqual(response.status_code, 404)
+        self.assertEqual(response.data, expected_response)
 
-        # 테스트를 진행합니다.
-        result = []
-        execution_time = []
-
-        for i in range(len(testcase)): # 4
-            start_time = time.time() # 타이머 시작
-
-            result.append(self.fence_position.build_fence(testcase[i]))
-
-            end_time = time.time() # 타이머 종료
-            execution_time.append(end_time - start_time)
-
-        # 예상 결과와 실제 결과를 비교하여 검증합니다.
-        for i in range(testcase):
-            print(f'===== {i}번째 테스트 실행 =====')
-            print(f'입력 데이터: {testcase[0]}')
-            # msg는 두 값이 같지 않을 때만 출력됩니다.
-            self.assertEqual(result[i], expected_result[i], msg='테스트 실패')
-            print(f"테스트 수행 시간: {execution_time[i]}초")
-
+if __name__ == '__main__':
+    unittest.main()

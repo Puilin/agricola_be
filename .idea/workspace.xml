@@ -1,10 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
   <component name="ChangeListManager">
     <list default="true" id="16da5190-a552-4079-b6e0-757158e23a6f" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/agricola/gameplay/test_views.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/agricola/gameplay/test.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/agricola/gameplay/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/agricola/gameplay/models.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/agricola/gameplay/test_views.py" beforeDir="false" afterPath="$PROJECT_DIR$/agricola/gameplay/test_views.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/agricola/gameplay/views.py" beforeDir="false" afterPath="$PROJECT_DIR$/agricola/gameplay/views.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -30,16 +33,17 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;WebServerToolWindowFactoryState&quot;: &quot;false&quot;,
-    &quot;last_opened_file_path&quot;: &quot;/Users/hdy/Documents/4학년1학기/소공/be&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "RunOnceActivity.OpenProjectViewOnStart": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "WebServerToolWindowFactoryState": "false",
+    "git-widget-placeholder": "yh.hong",
+    "last_opened_file_path": "/Users/hdy/Documents/4학년1학기/소공/be",
+    "settings.editor.selected.configurable": "com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable"
   }
-}</component>
-  <component name="RunManager">
+}]]></component>
+  <component name="RunManager" selected="Python tests.Python tests for agricola.gameplay.test_chat.test_chat_consumer">
     <configuration name="Python tests for agricola.gameplay.test_chat.test_chat_consumer" type="tests" factoryName="Autodetect" temporary="true" nameIsGenerated="true">
       <module name="be" />
       <option name="INTERPRETER_OPTIONS" value="" />

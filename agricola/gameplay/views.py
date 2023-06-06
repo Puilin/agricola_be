@@ -80,6 +80,83 @@ class PlayerBoardStatusViewSet(ModelViewSet):
     queryset = PlayerBoardStatus.objects.all()
     serializer_class = PlayerBoardStatusSerializer
 
+    # 어떤 플레이어의 점수를 계산해줄 것인지 player_id을 받는다
+    @swagger_auto_schema(
+        method='get',
+        manual_parameters=[
+            openapi.Parameter('player_id', openapi.IN_QUERY, description='Player ID', type=openapi.TYPE_INTEGER),
+        ]
+    )
+
+    # 플레이어의 점수를 계산해주는 API
+    @action(detail=False, methods=['GET'])
+    def calculate_score(self, request):
+        player_id = request.query_params.get('player_id')
+
+        try:
+            player = Player.objects.get(id=player_id)
+        except Player.DoesNotExist:
+            return Response({'message': 'Player not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+        # 점수 넣는 변수 ('Player' model의 'score' field)
+        player.score = 0
+
+        board_positions = BoardPosition.objects.filter(id=player_id)
+        for position in board_positions:
+            position_type = position.position_type
+            # 빈 칸 : 1개 당 -1점
+            if position_type == 0:
+                player.score -= 1
+
+        # 밭
+        field_count = board_positions.filter(board_id=player_id,position_type=2).count()
+        if (field_count == 0 or field_count == 1):
+            player.score -= 1
+        elif (2 <= field_count <= 4):
+            player.score += (field_count-1)
+        elif (field_count >= 5):
+            player.score += 4
+
+        # 우리(칸 크기와 상관없이 울타리가 쳐져있는 영역의 수)
+        pen_count = player_board_status.filter().count()
+
+        player_board_status = PlayerBoardStatus.objects.filter(player_id=player_id)
+        for house_num in player_board_status:
+            house_type = house_num.house_type
+            # 흙집 : 1개 당 1점
+            if house_type == 1:
+                player.score += 1
+            # 돌집 : 1개 당 2점
+            if house_type == 2:
+                player.score += 2
+
+        # 가족 말 : 1개 당 3점
+        player = Player.objects.get(id=player_id)
+        player.score += (player.adult_num + player.baby_num + player.remain_num) * 3
+
+        # 구걸 토큰 : 1개 당 -3점
+        player_resource = PlayerResource.objects.filter(player_id=player_id)
+        for resource in player_resource:
+            player.score += resource.resource_num * (-3)
+
+        # 울타리 있는 칸
+
+        # 곡식 (개인자원판 + 밭 위)
+
+        # 채소 (개인자원판 + 밭 위)
+
+        # 양
+
+        # 돼지
+
+        # 말
+
+        # 카드 점수
+
+        player.save()
+
+        return Response({'player_id': player_id, 'score': player.score})
+
 class BoardPositionViewSet(ModelViewSet):
     queryset = BoardPosition.objects.all()
     serializer_class = BoardPositionSerializer
