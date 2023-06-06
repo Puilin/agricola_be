@@ -67,7 +67,7 @@ def house_upgrade(player):
     #나무집 -> 흙집
     if my_board.house_type == 0:
         soil = PlayerResource.objects.get(player_id=player.id, resource_id=2)
-        if reed.resource_num >= my_board.house_num and soil >= my_board.house_num:
+        if reed.resource_num >= my_board.house_num and soil.resource_num >= my_board.house_num:
             reed.resource_num -= my_board.house_num
             soil.resource_num -= my_board.house_num
             my_board.house_type = 1
@@ -76,7 +76,7 @@ def house_upgrade(player):
     #흑집 -> 돌집    
     elif my_board.house_type == 1:
         stone = PlayerResource.objects.get(player_id=player.id, resource_id=4)
-        if reed >= my_board.house_num and soil >= my_board.house_num:
+        if reed.resource_num >= my_board.house_num and soil >= my_board.house_num:
             reed.resource_num -= my_board.house_num
             stone.resource_num -= my_board.house_num
             my_board.house_type = 2
