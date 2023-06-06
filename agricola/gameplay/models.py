@@ -100,3 +100,8 @@ class FamilyPosition(models.Model):
 class GameStatus(models.Model):
     turn = models.IntegerField(default=1)
     round = models.IntegerField(null = False, default=1)
+
+class PlayerCard(models.Model):
+    player_id = models.ForeignKey('Player', on_delete=models.CASCADE)
+    card_id = models.ForeignKey('Card', null=True, on_delete=models.CASCADE)
+    activate = models.IntegerField(null = False, default=0)
