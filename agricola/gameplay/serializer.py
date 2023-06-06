@@ -91,3 +91,8 @@ class ResourceSerializer(serializers.ModelSerializer):
     class Meta:
         model = Resource
         fields = '__all__'
+
+class PlayerCardSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PlayerCard
+        fields = '__all__'
