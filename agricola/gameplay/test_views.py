@@ -1,70 +1,68 @@
-import sys
-sys.path.append('/Users/hdy/Documents/4_1/sg/be/agricola')
-
 from django.test import TestCase
-import time
-import os
-import django
-
-from .models import *
-from rest_framework.response import Response
+from gameplay.models import *
 from rest_framework import status
 
-
-class FenceBuilderTestCase(TestCase):
+class RoundEndTest(TestCase):
     def setUp(self):
-        # 테스트에 필요한 초기 설정을 수행합니다.
-        os.environ['DJANGO_SETTINGS_MODULE'] = 'agricola.settings'
-        django.setup()
+        GameStatus.objects.create(round=1, turn=4)
+        self.account1 = Account.objects.create(email="abc@abc.com", name="홍길동", user_id="abc123", user_pw="1234")
+        Player.objects.create(user_id=self.account1, adult_num=2, baby_num=1, remain_num=0)
+        self.account2 = Account.objects.create(email="abc1@abc.com", name="홍길서", user_id="123abc", user_pw="1234")
+        Player.objects.create(user_id=self.account2, adult_num=3, baby_num=0, remain_num=0)
+        # 숲
+        forest_file = File.objects.create(id=1, path='/', filename='a')
+        forest_card = Card.objects.create(id=10, card_img = forest_file)
+        forest_pcard = PeriodCard.objects.create(card_id = forest_card, period = 0)
+        ActionBox.objects.create(card_id=forest_pcard, name="숲", round=0, is_occupied=False, is_res=True, acc_resource=3, add_resource=3)
+        # 곡식종자
+        grain_file = File.objects.create(id=2, path='/', filename='a')
+        grain_card = Card.objects.create(id=11, card_img = grain_file)
+        grain_pcard = PeriodCard.objects.create(card_id = grain_card, period = 0)
+        ActionBox.objects.create(card_id=grain_pcard, name="곡식종자", round=0, is_occupied=True, acc_resource=0, add_resource=1)
 
-        self.fence_position = FencePosition()
+        
+    def test_round_turn(self):
+        url = 'http://3.36.7.233:3000/gamestatus/round_end/'
+        
+        response = self.client.put(url,{})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        # 임시 데이터베이스에 더미데이터 추가
-        self.player_board_status = PlayerBoardStatus()
-        self.player_board_status.player_id = 1
-        self.player_board_status.save()
+        expected_result = {'next round':2, 'turn':1}
 
-        for i in range(1, 16): # 1~15
-            self.board_position = BoardPosition()
-            self.board_position.board_id = self.player_board_status.id
-            self.board_position.position = i
-            if i in [1, 2]:
-                self.board_position.position_type = 1
-                self.board_position.is_fam = True
-            else:
-                self.board_position.position_type = 0
-                self.board_position.is_fam = False
-            self.board_position.save()
+        data = response.data
+        
+        self.assertEqual(data['next round'], expected_result["next round"])
+        self.assertEqual(data['turn'], expected_result["turn"])
 
-    def test_build_fence(self):
+    def test_player_board(self):
+        url = 'http://3.36.7.233:3000/gamestatus/round_end/'
+        response = self.client.put(url,{})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        # 테스트할 함수의 입력 데이터를 준비합니다.
-        testcase = [{"player_id": 1, "fence_array": [[5, 6, 9], [8]]},
-                    {"player_id": 1, "fence_array": [[2, 5, 8]]},
-                    {"player_id": 1, "fence_array": [[13, 14, 8]]},
-                    {"player_id": 1, "fence_array": [[4], [7], [10]]}]
+        expected_result1 = {'adult_num':3,'baby_num':0,'remain_num':3}
 
-        expected_result = [Response({"message": "fence update complete."}, status=status.HTTP_200_OK),
-                           Response({'error': 'wrong position.'}, status=status.HTTP_403_FORBIDDEN),
-                           Response({'error': 'wrong position.'}, status=status.HTTP_403_FORBIDDEN),
-                           Response({"message": "fence update complete."}, status=status.HTTP_200_OK)]
+        player1 = Player.objects.get(user_id=self.account1)
+        self.assertEqual(player1.adult_num, expected_result1['adult_num'])
+        self.assertEqual(player1.baby_num, expected_result1['baby_num'])
+        self.assertEqual(player1.remain_num, expected_result1['remain_num'])
 
-        # 테스트를 진행합니다.
-        result = []
-        execution_time = []
+        expected_result2 = {'adult_num':3,'baby_num':0,'remain_num':3}
+        player2 = Player.objects.get(user_id=self.account2)
+        self.assertEqual(player2.adult_num, expected_result2['adult_num'])
+        self.assertEqual(player2.baby_num, expected_result2['baby_num'])
+        self.assertEqual(player2.remain_num, expected_result2['remain_num'])
 
-        for i in range(len(testcase)): # 4
-            start_time = time.time() # 타이머 시작
+    def test_actionbox(self):
+        url = 'http://3.36.7.233:3000/gamestatus/round_end/'
+        response = self.client.put(url,{})
 
-            result.append(self.fence_position.build_fence(testcase[i]))
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-            end_time = time.time() # 타이머 종료
-            execution_time.append(end_time - start_time)
+        expected_result_forest = {'acc_resource':6}
+        expected_result_grain = {'acc_resource':1, 'is_occupied':False}
 
-        # 예상 결과와 실제 결과를 비교하여 검증합니다.
-        for i in range(testcase):
-            print(f'===== {i}번째 테스트 실행 =====')
-            print(f'입력 데이터: {testcase[0]}')
-            # msg는 두 값이 같지 않을 때만 출력됩니다.
-            self.assertEqual(result[i], expected_result[i], msg='테스트 실패')
-            print(f"테스트 수행 시간: {execution_time[i]}초")
+        result_forest = ActionBox.objects.get(name="숲")
+        self.assertEqual(result_forest.acc_resource, expected_result_forest['acc_resource'])
+        result_grain = ActionBox.objects.get(name="곡식종자")
+        self.assertEqual(result_grain.acc_resource, expected_result_grain['acc_resource'])
+        self.assertEqual(result_grain.is_occupied, expected_result_grain['is_occupied'])
