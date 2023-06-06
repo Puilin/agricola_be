@@ -1,5 +1,5 @@
 import sys
-sys.path.append('/Users/hdy/Documents/4_1/sg/be/agricola')
+sys.path.append('C:/Users/sunmeng/agricola/be/agricola/gameplay')
 
 from django.test import TestCase
 import time
