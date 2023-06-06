@@ -103,3 +103,23 @@ class MyTurnTestCase1(APITestCase):
         # Check the response data
         expected_result = {'my_turn': True}
         self.assertEqual(response.data, expected_result)
+
+        # turn counter가 짝수지만 player 2의 남은 가족 구성원이 없는 경우
+        # Player 1의 차례가 된다
+        gamestatus.turn = 4
+        gamestatus.save()
+        player2 = Player.objects.get(id=2)
+        player2.remain_num = 0
+        player2.save()
+
+        # Send a GET request to the URL with the query parameters
+        player_id = 1
+        query_params = {'player_id': player_id}
+        response = self.client.get(url, query_params)
+
+        # Check the response status code
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        # Check the response data
+        expected_result = {'my_turn': True}
+        self.assertEqual(response.data, expected_result)
