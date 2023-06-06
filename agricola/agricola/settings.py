@@ -30,7 +30,16 @@ DEBUG = True
 
 CORS_ORIGIN_ALLOW_ALL = True
 CORS_ALLOW_ALL_ORIGINS = True
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = [
+    # '0.0.0.0'
+    # '127.0.0.1',
+    # 'localhost',
+    # '3.36.7.233',
+    # 'ec2-3-36-7-233.ap-northeast-2.compute.amazonaws.com',
+    # 'https://jazzy-trifle-183e7d.netlify.app',
+    # 'ip-172-31-10-22.ap-northeast-2.compute.internal'
+    '*'
+]
 
 # Application definition
 

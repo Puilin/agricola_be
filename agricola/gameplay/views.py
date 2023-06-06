@@ -248,6 +248,9 @@ class MainFacilityCardViewSet(ModelViewSet):
 
     @action(detail=False, methods=['post'])
     def get_mainfacility(self, request):
+        # choice_card = request.data.get('card_id')
+        # active_card = player_card.get(card_id = choice_card)
+        # active_card.
         return
 
 
@@ -590,4 +593,7 @@ class PlayerResourceViewSet(ModelViewSet):
         except PlayerBoardStatus.DoesNotExist:
             return Response({'message': 'PlayerBoardStatus not found.'}, status=404)
         
-        
+
+class PlayerCardViewSet(ModelViewSet):
+    queryset = PlayerCard.objects.all()
+    serializer_class = PlayerCardSerializer
