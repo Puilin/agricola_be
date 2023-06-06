@@ -353,7 +353,9 @@ class GameStatusViewSet(ModelViewSet):
     def round_end(self, request):
         players = Player.objects.all()
         for player in players:
+            player.adult_num += player.baby_num
             player.remain_num = player.adult_num
+            player.baby_num = 0
             player.save()
 
         actionboxes = ActionBox.objects.all()
@@ -365,12 +367,12 @@ class GameStatusViewSet(ModelViewSet):
             actionbox.is_occupied = False
             actionbox.save()
 
-        game_status = GameStatus.objects.all()
+        game_status = GameStatus.objects.first()
         game_status.round += 1
         game_status.turn = 1
         game_status.save()
 
-        return Response({'next round':game_status.round})
+        return Response({'next round':game_status.round, 'turn':game_status.turn})
 
     @action(detail=False, methods=['put'])
     def priod_end(self, request):
