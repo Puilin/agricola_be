@@ -12,7 +12,12 @@ Pipfile.lock
 
 .DS_Store
 
-
 .idea/workspace.xml
 
 key.pem
+
+*.sqlite3
+
+*.db
+
+.pytest_cache
