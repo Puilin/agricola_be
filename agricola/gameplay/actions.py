@@ -38,6 +38,15 @@ def grain_seed(player):
 
     # 곡식을 하나 받음
     my_resource.resource_num += 1
+
+    #곡식용 삽이 있을 때
+    try:
+        shovel = PlayerCard.objects.get(player_id = player.id, card_id = 22)
+        if shovel.activate == 1:
+            my_resource.resource_num += 1
+    except PlayerCard.DoesNotExist:
+        pass
+
     my_resource.save()
 
     serializer = PlayerResourceSerializer(my_resource)

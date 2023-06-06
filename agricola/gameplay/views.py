@@ -252,13 +252,6 @@ class MainFacilityCardViewSet(ModelViewSet):
     queryset = MainFacilityCard.objects.all()
     serializer_class = MainFacilityCardSerializer
 
-    @action(detail=False, methods=['post'])
-    def get_mainfacility(self, request):
-        # choice_card = request.data.get('card_id')
-        # active_card = player_card.get(card_id = choice_card)
-        # active_card.
-        return
-
 
 class ActionBoxViewSet(ModelViewSet):
     queryset = ActionBox.objects.all()
@@ -294,6 +287,8 @@ class GameStatusViewSet(ModelViewSet):
         game_status.round += 1
         game_status.turn = 1
         game_status.save()
+
+        return Response({'next round':game_status.round})
 
     @action(detail=False, methods=['put'])
     def priod_end(self, request):
@@ -366,6 +361,7 @@ class FamilyPositionViewSet(ModelViewSet):
         # Load the player ID and action ID from the request data
         player_id = request.data.get('player_id')
         action_id = request.data.get('action_id')
+        card_id = request.data.get('card_id')
 
         # Get the player and action objects
         player = Player.objects.get(id=player_id)
@@ -401,7 +397,8 @@ class FamilyPositionViewSet(ModelViewSet):
             #집개조
             elif action_id == 21:
                 response = house_upgrade(player)
-
+                player_card = PlayerCardViewSet()
+                player_card.activate_card({'player_id': player_id, 'card_id':card_id})
             
             # 코드가 404면 -> 해당 행동이 거부됨 ->함수 종료
             if response.status_code == 404:
@@ -603,3 +600,21 @@ class PlayerResourceViewSet(ModelViewSet):
 class PlayerCardViewSet(ModelViewSet):
     queryset = PlayerCard.objects.all()
     serializer_class = PlayerCardSerializer
+
+    @action(detail=False, methods=['post'])
+    def activate_card(self, request):
+        #어떤플레이어가 어떤카드를 활성화시킬건지
+        my_id = request.data.get('player_id')
+        choice_card = request.data.get('card_id')
+        active_card = PlayerCard.objects.get(card_id = choice_card)
+        active_costs = ActivationCost.objects.filter(card_id = choice_card)
+        for active_cost in active_costs:
+            my_resource = PlayerResource.objects.get(player_id = my_id, resource_id = active_cost.resource_id)
+            if my_resource.resource_num < active_cost.resource_num:
+                return Response({'detail': 'Not enough resources'}, status=404)
+            else:
+                my_resource.resource_num -= active_cost.resource_num
+        active_card.activate = 1
+        active_card.save()
+        my_resource.save()
+        return Response({'message': 'Activate Success'})
