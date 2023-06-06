@@ -143,8 +143,9 @@ class FencePositionViewSet(ModelViewSet):
         ex_fence_array = self.get_fencepositions_with_boardid(board_id) # 기존에 가지고 있던 울타리들의 포지션 배열
         invalid_position = self.get_invalid_position(board_id)  # 집, 밭 포지션
         valid_position = self.get_valid_position(ex_fence_array, invalid_position) # fence_array에 포함되어야 하는 포지션
+        pen_num = len(fence_array)
 
-        while (len(fence_array) > 0): # 유효한 울타리인지 검사
+        while (pen_num > 0): # 유효한 울타리인지 검사
             new_position = self.is_in_valid(fence_array, valid_position)
             if new_position == False:
                 return Response({'error': 'wrong position.'}, status=status.HTTP_403_FORBIDDEN)
@@ -184,6 +185,12 @@ class FencePositionViewSet(ModelViewSet):
                 fence_position.top = top
                 fence_position.bottom = bottom
                 fence_position.save()
+
+                player_board_status = PlayerBoardStatus.objects.get(id=board_id)
+                pen = player_board_status.pen_num
+                pen = pen + pen_num
+                player_board_status.pen_num = pen
+                player_board_status.save()
 
         return Response({"message": "fence update complete."}, status=status.HTTP_200_OK)
 class PeriodCardViewSet(ModelViewSet):
