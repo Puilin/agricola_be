@@ -159,7 +159,6 @@ class FencePositionViewSet(ModelViewSet):
 
         # db에 추가
         for fences in fence_array:
-            print(f'fences: {fences} fences type : {type(fences)}')
             for i in range(len(fences)):
                 left, right, top, bottom = [True, True, True, True]
                 if (int(fences[i]) % 3 != 0) & ((int(fences[i]) + 1) in fences): # 오른쪽 끝 제외
