@@ -9,6 +9,7 @@ from rest_framework import status
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 from .actions import *
+from .utils import get_adjacent_farmlands
 import json
 
 # Create your views here.
@@ -165,6 +166,40 @@ class PlayerBoardStatusViewSet(ModelViewSet):
 class BoardPositionViewSet(ModelViewSet):
     queryset = BoardPosition.objects.all()
     serializer_class = BoardPositionSerializer
+
+    @swagger_auto_schema(
+        method='put',
+        request_body=openapi.Schema(
+            type=openapi.TYPE_OBJECT,
+            properties={
+                'player_id': openapi.Schema(type=openapi.TYPE_INTEGER),
+                'land_num': openapi.Schema(type=openapi.TYPE_INTEGER)
+            }
+        )
+    )
+    @action(detail=False, methods=['PUT'])
+    def construct_land(self, request):
+        player_id = request.data.get('player_id')
+        land = request.data.get('land_num')
+
+        player = Player.objects.get(id=player_id)
+        board = PlayerBoardStatus.objects.get(player_id=player)
+        board_pos = self.queryset.filter(board_id=board)
+        position = board_pos.get(board_id=board, position=land)
+
+        # 처음 밭을 가는 경우
+        if count_farmlands(board_pos) == 0:
+            position.position_type = 2 # 밭
+            position.save()
+            serializer = self.serializer_class(position)
+            return Response(serializer.data)
+        # 인접한지 체크
+        if not land in get_adjacent_farmlands(board_pos):
+            return Response({'error':"That land is not adjacent with your farmland"}, status=403)
+        position.position_type = 2 # 밭
+        position.save()
+        serializer = self.serializer_class(position)
+        return Response(serializer.data)
 
 class FencePositionViewSet(ModelViewSet):
     queryset = FencePosition.objects.all()
@@ -349,6 +384,10 @@ class GameStatusViewSet(ModelViewSet):
         turn_counter = game_status.turn
         return Response({'turn': turn_counter})
     
+    @swagger_auto_schema(
+        method='put',
+        request_body=None
+    )
     @action(detail=False, methods=['put'])
     def round_end(self, request):
         players = Player.objects.all()
@@ -365,10 +404,13 @@ class GameStatusViewSet(ModelViewSet):
             actionbox.is_occupied = False
             actionbox.save()
 
-        game_status = GameStatus.objects.all()
+        game_status = GameStatus.objects.first()
         game_status.round += 1
         game_status.turn = 1
         game_status.save()
+
+        familyposition = FamilyPosition.objects.all()
+        familyposition.delete()
 
         return Response({'next round':game_status.round})
 
@@ -476,6 +518,9 @@ class FamilyPositionViewSet(ModelViewSet):
             # 숲
             elif action_id == 11:
                 response = forest(player)
+            # 농지
+            elif action_id == 12:
+                response = farmland(player)
             #집개조
             elif action_id == 21:
                 response = house_upgrade(player)
@@ -484,7 +529,7 @@ class FamilyPositionViewSet(ModelViewSet):
             
             # 코드가 404면 -> 해당 행동이 거부됨 ->함수 종료
             if response.status_code == 404:
-                return
+                return response
 
             # 턴 카운터 업데이트
             game_status.turn = turn_counter + 1
