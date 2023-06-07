@@ -297,6 +297,7 @@ class PlayerBoardStatusViewSet(ModelViewSet):
         return Response({'player_id': player_id, 'score': player.score})
 
 
+
 class BoardPositionViewSet(ModelViewSet):
     queryset = BoardPosition.objects.all()
     serializer_class = BoardPositionSerializer
