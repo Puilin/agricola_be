@@ -65,26 +65,28 @@ def house_upgrade(player):
     my_board = PlayerBoardStatus.objects.get(player_id=player.id)
     reed = PlayerResource.objects.get(player_id=player.id, resource_id=3)
     #나무집 -> 흙집
-    if my_board.house_type == 0:
+    if my_board.house_type == 1:
         soil = PlayerResource.objects.get(player_id=player.id, resource_id=2)
         if reed.resource_num >= my_board.house_num and soil.resource_num >= my_board.house_num:
             reed.resource_num -= my_board.house_num
             soil.resource_num -= my_board.house_num
-            my_board.house_type = 1
+            my_board.house_type = 2
+            soil.save()
         else:
             return Response({'detail': 'Not enough resources'}, status=404)
     #흑집 -> 돌집    
-    elif my_board.house_type == 1:
+    elif my_board.house_type == 2:
         stone = PlayerResource.objects.get(player_id=player.id, resource_id=4)
-        if reed.resource_num >= my_board.house_num and soil >= my_board.house_num:
+        if reed.resource_num >= my_board.house_num and stone.resource_num >= my_board.house_num:
             reed.resource_num -= my_board.house_num
             stone.resource_num -= my_board.house_num
-            my_board.house_type = 2
+            my_board.house_type = 3
+            stone.save()
         else:
             return Response({'detail': 'Not enough resources'}, status=404)
+    else:
+        return Response({'detail': 'You can no longer upgrade'}, status=404)
     reed.save()
-    soil.save()
-    stone.save()
     my_board.save()
 
     serializer = PlayerBoardStatusSerializer(my_board)

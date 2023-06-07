@@ -563,7 +563,19 @@ class GameStatusViewSet(ModelViewSet):
 class FamilyPositionViewSet(ModelViewSet):
     queryset = FamilyPosition.objects.all()
     serializer_class = FamilyPositionSerializer
-
+    @swagger_auto_schema(
+        method='post',
+        request_body=openapi.Schema(
+            type=openapi.TYPE_OBJECT,
+            properties={
+                'turn': openapi.Schema(type=openapi.TYPE_INTEGER),
+                'player_id': openapi.Schema(type=openapi.TYPE_INTEGER),
+                'action_id': openapi.Schema(type=openapi.TYPE_INTEGER),
+                'card_id': openapi.Schema(type=openapi.TYPE_INTEGER)
+            },
+            required=['turn','player_id','action_id']
+        )
+    )
     @action(detail=False, methods=['post'])
     def take_action(self, request):
         serializer = self.get_serializer(data=request.data)
@@ -815,6 +827,10 @@ class PlayerCardViewSet(ModelViewSet):
     queryset = PlayerCard.objects.all()
     serializer_class = PlayerCardSerializer
 
+    @action(detail=False, method=['get'])
+    def activable_check(self, request):
+        my_id = request.data.get('player_id')
+
     @action(detail=False, methods=['post'])
     def activate_card(self, request):
         #어떤플레이어가 어떤카드를 활성화시킬건지
@@ -828,7 +844,7 @@ class PlayerCardViewSet(ModelViewSet):
                 return Response({'detail': 'Not enough resources'}, status=404)
             else:
                 my_resource.resource_num -= active_cost.resource_num
+                my_resource.save()
         active_card.activate = 1
         active_card.save()
-        my_resource.save()
         return Response({'message': 'Activate Success'})
