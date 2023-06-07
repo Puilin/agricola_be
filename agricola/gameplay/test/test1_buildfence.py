@@ -1,32 +1,31 @@
-import sys
-sys.path.append('/Users/hdy/Documents/4_1/sg/be/agricola')
-
-from django.test import TestCase
 import time
-import os
-import django
 
-from models import *
-from rest_framework.response import Response
+from gameplay.models import *
 from rest_framework import status
+from rest_framework.test import APITestCase
 
 
-class FenceBuilderTestCase(TestCase):
+class FenceBuilderTestCase(APITestCase):
+    # 테스트에 필요한 초기 설정을 수행합니다.
     def setUp(self):
-        # 테스트에 필요한 초기 설정을 수행합니다.
-        os.environ['DJANGO_SETTINGS_MODULE'] = 'agricola.settings'
-        django.setup()
-
-        self.fence_position = FencePosition()
-
         # 임시 데이터베이스에 더미데이터 추가
+        self.account = Account()
+        self.account.email = "admin@google.com"
+        self.account.user_id = "sys"
+        self.account.user_pw = "sys"
+        self.account.save()
+
+        self.player = Player()
+        self.player.user_id = self.account
+        self.player.save()
+
         self.player_board_status = PlayerBoardStatus()
-        self.player_board_status.player_id = 1
+        self.player_board_status.player_id = self.player
         self.player_board_status.save()
 
         for i in range(1, 16): # 1~15
             self.board_position = BoardPosition()
-            self.board_position.board_id = self.player_board_status.id
+            self.board_position.board_id = self.player_board_status
             self.board_position.position = i
             if i in [1, 2]:
                 self.board_position.position_type = 1
@@ -44,10 +43,10 @@ class FenceBuilderTestCase(TestCase):
                     {"player_id": 1, "fence_array": [[13, 14, 8]]},
                     {"player_id": 1, "fence_array": [[4], [7], [10]]}]
 
-        expected_result = [Response({"message": "fence update complete."}, status=status.HTTP_200_OK),
-                           Response({'error': 'wrong position.'}, status=status.HTTP_403_FORBIDDEN),
-                           Response({'error': 'wrong position.'}, status=status.HTTP_403_FORBIDDEN),
-                           Response({"message": "fence update complete."}, status=status.HTTP_200_OK)]
+        expected_result = [status.HTTP_200_OK,
+                           status.HTTP_403_FORBIDDEN,
+                           status.HTTP_403_FORBIDDEN,
+                           status.HTTP_200_OK]
 
         # 테스트를 진행합니다.
         result = []
@@ -56,16 +55,18 @@ class FenceBuilderTestCase(TestCase):
         for i in range(len(testcase)): # 4
             start_time = time.time() # 타이머 시작
 
-            result.append(self.fence_position.build_fence(testcase[i]))
+            response = self.client.post('/fenceposition/build_fence/', data=testcase[i], format='json')
+            result.append(response)
 
             end_time = time.time() # 타이머 종료
             execution_time.append(end_time - start_time)
 
         # 예상 결과와 실제 결과를 비교하여 검증합니다.
-        for i in range(testcase):
-            print(f'===== {i}번째 테스트 실행 =====')
-            print(f'입력 데이터: {testcase[0]}')
+        print('[ 기존의 울타리가 없는 경우 ]')
+        for i in range(len(testcase)):
+            print(f'===== {i + 1}번째 테스트 실행 =====')
+            print(f'입력 데이터: {testcase[i]}')
             # msg는 두 값이 같지 않을 때만 출력됩니다.
-            self.assertEqual(result[i], expected_result[i], msg='테스트 실패')
+            self.assertEqual(result[i].status_code, expected_result[i], msg='테스트 실패')
             print(f"테스트 수행 시간: {execution_time[i]}초")
-
+            print('\tSUCCESS!')

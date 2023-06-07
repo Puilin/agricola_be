@@ -112,7 +112,7 @@ class FencePositionViewSet(ModelViewSet):
 
     def get_valid_position(self, ex_fence_list, invalid_position):  # fence_list에 있는 포지션들의 주변 포지션을 리턴
         if not ex_fence_list:  # 기존에 설치한 울타리가 없다면
-            return list(range(1, 16))
+            return list(range(3, 16))
         valid_position = []
         for position in ex_fence_list:
             if ((position % 3) != 0):  # 오른쪽 끝이 아니면
@@ -128,15 +128,16 @@ class FencePositionViewSet(ModelViewSet):
         return valid_position
 
     def is_in_valid(self, fence_array, valid_position): # 울타리를 치고 싶은 포지션이 valid한지 검증
-        for positions in fence_array:
-            for position in positions:
-                if position in valid_position:
+        for positions in fence_array: # [8] /  [[8], [5, 6, 9]]
+            for position in positions: # 8  /  5 6 9
+                if position in valid_position: # [9, 11, 15]
                     return positions
         return False
 
     @action(detail=False, methods=['POST'])
     def build_fence(self, request): # { "player_id": 12, "fence_array": [[1, 2, 7], [6]] }
         player_id = request.data.get('player_id')
+        print(f'player_id: {player_id} fence_array: {request.data.get("fence_array")}')
         board_id = self.get_boardid_with_playerid(player_id)
         fst_fence_array = request.data.get('fence_array') # 추가하고 싶은 울타리들의 포지션 배열
         fence_array = fst_fence_array
@@ -145,17 +146,18 @@ class FencePositionViewSet(ModelViewSet):
         valid_position = self.get_valid_position(ex_fence_array, invalid_position) # fence_array에 포함되어야 하는 포지션
         pen_num = len(fence_array)
 
-        while (pen_num > 0): # 유효한 울타리인지 검사
+        while (len(fence_array) > 0): # 유효한 울타리인지 검사
             new_position = self.is_in_valid(fence_array, valid_position)
             if new_position == False:
                 return Response({'error': 'wrong position.'}, status=status.HTTP_403_FORBIDDEN)
-
             else:
                 ex_fence_array.extend(new_position)
                 valid_position = self.get_valid_position(ex_fence_array, invalid_position)
                 fence_array = [sublist for sublist in fence_array if sublist != new_position]
 
         fence_array = fst_fence_array
+
+        serializer = FencePositionSerializer
 
         # db에 추가
         for fences in fence_array:
@@ -185,13 +187,15 @@ class FencePositionViewSet(ModelViewSet):
                 fence_position.bottom = bottom
                 fence_position.save()
 
+
+
                 player_board_status = PlayerBoardStatus.objects.get(id=board_id)
                 pen = player_board_status.pen_num
                 pen = pen + pen_num
                 player_board_status.pen_num = pen
                 player_board_status.save()
 
-        return Response({"message": "fence update complete."}, status=status.HTTP_200_OK)
+        return Response({"message": "fence update complete.", "position_arr" : fence}, status=status.HTTP_200_OK)
 class PeriodCardViewSet(ModelViewSet):
     queryset = PeriodCard.objects.all()
     serializer_class = PeriodCardSerializer

@@ -4,7 +4,7 @@ from . import consumers
 from channels.routing import ProtocolTypeRouter, URLRouter
 
 websocket_urlpatterns = [
-    path('chat/<str:room_name>/', consumers.GameConsumer.as_asgi()),
+    path('ws/room_<str:room_name>/player_<str:player_id>/', consumers.GameConsumer.as_asgi()),
 ]
 
 application = ProtocolTypeRouter(
