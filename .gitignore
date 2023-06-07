@@ -21,3 +21,5 @@ key.pem
 *.db
 
 .pytest_cache
+
+pytest.ini
