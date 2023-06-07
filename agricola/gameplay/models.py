@@ -105,3 +105,7 @@ class PlayerCard(models.Model):
     player_id = models.ForeignKey('Player', on_delete=models.CASCADE)
     card_id = models.ForeignKey('Card', null=True, on_delete=models.CASCADE)
     activate = models.IntegerField(null = False, default=0)
+
+class Room(models.Model):
+    name = models.CharField(max_length=100)
+    participants = models.ManyToManyField('Player')
