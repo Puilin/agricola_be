@@ -44,3 +44,7 @@ def get_adjacent_farmlands(board_pos):
     for index in farmlands:
         lists += get_adjacent_slots(farmlands, index)
     return list(set(lists))
+
+# 가축을 키울수 있는 칸의 수를 받아오는 함수
+def count_pens(board_pos):
+    pens = board_pos.filter(position_type=2)

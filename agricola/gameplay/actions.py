@@ -111,3 +111,17 @@ def farmland(player):
     else: # 밭이 하나 이상일 경우
         possible_positions = get_adjacent_farmlands(board_pos)
         return Response({'lands':possible_positions})
+
+def sheep_market(player):
+    sheep_market_action = ActionBox.objects.get(id=18)
+    if sheep_market_action.is_occupied:
+        return Response({'detail': 'There\'s someone else in sheepmarket'}, status=404)
+    
+    sheep_market_action.is_occupied = True
+    sheep_market_action.save()
+
+    board = PlayerBoardStatus.objects.get(player_id=player)
+    board_pos = BoardPosition.objects.filter(board_id=board) # queryset
+
+    if count_pens(board_pos) == 0:
+        pass

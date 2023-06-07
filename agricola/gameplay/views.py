@@ -770,6 +770,8 @@ class FamilyPositionViewSet(ModelViewSet):
             # 농지
             elif action_id == 12:
                 response = farmland(player)
+            elif action_id == 18:
+                response = sheep_market(player)
             #집개조
             elif action_id == 21:
                 response = house_upgrade(player)
