@@ -279,6 +279,7 @@ class PlayerBoardStatusViewSet(ModelViewSet):
                 player.score += 1
             if (card_id == 28):
                 player.score += 2
+
         player.save()
 
         return Response({'player_id': player_id, 'score': player.score})
