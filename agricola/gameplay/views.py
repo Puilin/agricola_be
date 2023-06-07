@@ -11,6 +11,7 @@ from drf_yasg import openapi
 from .actions import *
 from .utils import get_adjacent_farmlands
 import json
+from django.db.models import Sum
 
 # Create your views here.
 class AccountViewSet(ModelViewSet):
@@ -99,7 +100,7 @@ class PlayerBoardStatusViewSet(ModelViewSet):
         except Player.DoesNotExist:
             return Response({'message': 'Player not found.'}, status=status.HTTP_404_NOT_FOUND)
 
-        # 점수 넣는 field 초기화
+        # 점수 넣는 변수 ('Player' model의 'score' field)
         player.score = 0
 
         board_positions = BoardPosition.objects.filter(id=player_id)
@@ -108,55 +109,137 @@ class PlayerBoardStatusViewSet(ModelViewSet):
             # 빈 칸 : 1개 당 -1점
             if position_type == 0:
                 player.score -= 1
-            # 울타리를 친 외양간
+            # 울타리를 친 외양간 : 1개 당 1점
             if position_type == 5:
                 player.score += 1
 
         # 밭
-        field_count = board_positions.filter(position_type=2).count()
+        field_count = board_positions.filter(board_id=player_id,position_type=2).count()
         if (field_count == 0 or field_count == 1):
             player.score -= 1
-        elif (field_count == 2):
-            player.score += 1
-        elif (field_count == 3):
-            player.score += 2
-        elif (field_count == 4):
-            player.score += 3
+        elif (2 <= field_count <= 4):
+            player.score += (field_count-1)
         elif (field_count >= 5):
             player.score += 4
 
+        # 우리 (칸 크기와 상관없이 울타리가 쳐져있는 영역의 수)
         player_board_status = PlayerBoardStatus.objects.filter(player_id=player_id)
+        pen_num = 0
+        for board_status in player_board_status:
+            pen_num += board_status.pen_num
+        if pen_num == 0:
+            player.score -= 1
+        elif (1 <= pen_num <= 3):
+            player.score += pen_num
+        elif pen_num >= 4:
+            player.score += 4
+
         for house_num in player_board_status:
             house_type = house_num.house_type
             # 흙집 : 1개 당 1점
             if house_type == 1:
                 player.score += 1
             # 돌집 : 1개 당 2점
-            if house_type == 2:
+            elif house_type == 2:
                 player.score += 2
 
         # 가족 말 : 1개 당 3점
-        player = Player.objects.get(id=player_id)
-        player.score += (player.adult_num + player.baby_num + player.remain_num) * 3
+        total_fam_num = player.adult_num + player.baby_num + player.remain_num
+        player.score += (total_fam_num * 3)
 
         # 구걸 토큰 : 1개 당 -3점
-        player_resource = PlayerResource.objects.filter(player_id=player_id)
+        player_resource = PlayerResource.objects.filter(player_id=player_id, resource_id=11)
         for resource in player_resource:
             player.score += resource.resource_num * (-3)
 
-        # 울타리 있는 칸
-
-        # 곡식 (개인자원판 + 밭 위)
-
-        # 채소 (개인자원판 + 밭 위)
-
         # 양
+        sheep_resource = PlayerResource.objects.filter(player_id=player_id, resource_id=7)
+        sheep_count = sheep_resource.aggregate(total_sheep=Sum('resource_num'))['total_sheep']
+        if (sheep_count == 0):
+            player.score -= 1
+        elif (1 <= sheep_count <= 3):
+            player.score += 1
+        elif (4 <= sheep_count <= 5):
+            player.score += 2
+        elif (6 <= sheep_count <= 7):
+            player.score += 3
+        elif (sheep_count >= 8):
+            player.score += 4
 
         # 돼지
+        pig_resource = PlayerResource.objects.filter(player_id=player_id, resource_id=8)
+        pig_count = pig_resource.aggregate(total_pig=Sum('resource_num'))['total_pig']
+        if (pig_count == 0):
+            player.score -= 1
+        elif (1 <= pig_count <= 2):
+            player.score += 1
+        elif (3 <= pig_count <= 4):
+            player.score += 2
+        elif (5 <= pig_count <= 6):
+            player.score += 3
+        elif (pig_count >= 7):
+            player.score += 4
 
-        # 말
+        # 소
+        cow_resource = PlayerResource.objects.filter(player_id=player_id, resource_id=9)
+        cow_count = cow_resource.aggregate(total_cow=Sum('resource_num'))['total_cow']
+        if (cow_count == 0):
+            player.score -= 1
+        elif (cow_count == 1):
+            player.score += 1
+        elif (2 <= cow_count <= 3):
+            player.score += 2
+        elif (4 <= cow_count <= 5):
+            player.score += 3
+        elif (cow_count >= 6):
+            player.score += 4
+
+        # 곡식 (밭 위) 개수 구하기
+        board_positions = BoardPosition.objects.filter(board_id__player_id=player_id, vege_type=1)
+        crop_count = board_positions.count()
+        # 곡식 (개인자원판) 개수 구하기
+        player_resources = PlayerResource.objects.filter(player_id=player_id, resource_id=5)
+        crop_count += player_resources.count()
+        # 곡식 점수 계산
+        if (crop_count == 0):
+            player.score -= 1
+        elif (1 <= crop_count <= 3):
+            player.score += 1
+        elif (4 <= crop_count <= 5):
+            player.score += 2
+        elif (6 <= crop_count <= 7):
+            player.score += 3
+        elif (crop_count >= 8):
+            player.score += 4
+
+        # 채소 (밭 위) 개수 구하기
+        board_positions = BoardPosition.objects.filter(board_id__player_id=player_id, vege_type=2)
+        vege_count = board_positions.count()
+        # 채소 (개인자원판) 개수 구하기
+        player_resources = PlayerResource.objects.filter(player_id=player_id, resource_id=6)
+        vege_count += player_resources.count()
+        # 채소 점수 계산
+        if (vege_count == 0):
+            player.score -= 1
+        elif (1 <= vege_count <= 4):
+            player.score += vege_count
 
         # 카드 점수
+        player_card = PlayerCard.objects.filter(player_id=player_id)
+        for card in player_card:
+            score_card = card.card_id
+            if (score_card == 16):
+                player.score += 1
+            if (score_card == 19):
+                player.score += 1
+            if (score_card == 21):
+                player.score += 1
+            if (score_card == 24):
+                player.score += 1
+            if (score_card == 26):
+                player.score += 1
+            if (score_card == 28):
+                player.score += 2
 
         player.save()
 
