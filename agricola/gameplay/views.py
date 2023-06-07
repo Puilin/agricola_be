@@ -101,7 +101,6 @@ class PlayerBoardStatusViewSet(ModelViewSet):
 
         # 점수 넣는 변수 ('Player' model의 'score' field)
         player.score = 0
-        print("초기 점수:", player.score)
 
         board_positions = BoardPosition.objects.filter(id=player_id)
         for position in board_positions:
@@ -112,7 +111,6 @@ class PlayerBoardStatusViewSet(ModelViewSet):
             # 울타리를 친 외양간 : 1개 당 1점
             if position_type == 5:
                 player.score += 1
-        print("빈 칸, 울타리를 친 외양간 반영 결과:", player.score)
 
         # 밭
         field_count = board_positions.filter(board_id=player_id,position_type=2).count()
@@ -122,7 +120,6 @@ class PlayerBoardStatusViewSet(ModelViewSet):
             player.score += (field_count-1)
         elif (field_count >= 5):
             player.score += 4
-        print("밭 반영 결과:", player.score)
 
         # 우리 (칸 크기와 상관없이 울타리가 쳐져있는 영역의 수)
         player_board_status = PlayerBoardStatus.objects.filter(player_id=player_id)
@@ -135,7 +132,6 @@ class PlayerBoardStatusViewSet(ModelViewSet):
             player.score += pen_num
         elif pen_num >= 4:
             player.score += 4
-        print("우리 반영 결과:", player.score)
 
         for house_num in player_board_status:
             house_type = house_num.house_type
@@ -145,18 +141,15 @@ class PlayerBoardStatusViewSet(ModelViewSet):
             # 돌집 : 1개 당 2점
             elif house_type == 2:
                 player.score += 2
-        print("흙집, 돌집 반영 결과:", player.score)
 
         # 가족 말 : 1개 당 3점
         total_fam_num = player.adult_num + player.baby_num + player.remain_num
         player.score += (total_fam_num * 3)
-        print("가족말 반영 결과:", player.score)
 
         # 구걸 토큰 : 1개 당 -3점
         player_resource = PlayerResource.objects.filter(player_id=player_id, resource_id=11)
         for resource in player_resource:
             player.score += resource.resource_num * (-3)
-        print("구걸토큰 반영 결과:", player.score)
 
         # 양
         sheep_resource = PlayerResource.objects.filter(player_id=player_id, resource_id=7)
@@ -171,7 +164,6 @@ class PlayerBoardStatusViewSet(ModelViewSet):
             player.score += 3
         elif (sheep_count >= 8):
             player.score += 4
-        print("양 반영 결과:", player.score)
 
         # 돼지
         pig_resource = PlayerResource.objects.filter(player_id=player_id, resource_id=8)
@@ -186,7 +178,6 @@ class PlayerBoardStatusViewSet(ModelViewSet):
             player.score += 3
         elif (pig_count >= 7):
             player.score += 4
-        print("돼지 반영 결과:", player.score)
 
         # 소
         cow_resource = PlayerResource.objects.filter(player_id=player_id, resource_id=9)
@@ -201,16 +192,13 @@ class PlayerBoardStatusViewSet(ModelViewSet):
             player.score += 3
         elif (cow_count >= 6):
             player.score += 4
-        print("소 반영 결과:", player.score)
 
         # 곡식 (밭 위) 개수 구하기
         board_positions = BoardPosition.objects.filter(board_id__player_id=player_id, vege_type=1)
         crop_count = board_positions.count()
-        print("곡식 개수(밭 위):", crop_count)
         # 곡식 (개인자원판) 개수 구하기
         player_resources = PlayerResource.objects.filter(player_id=player_id, resource_id=5)
         crop_count += player_resources.count()
-        print("곡식 개수(개인자원판):", crop_count)
         # 곡식 점수 계산
         if (crop_count == 0):
             player.score -= 1
@@ -222,24 +210,18 @@ class PlayerBoardStatusViewSet(ModelViewSet):
             player.score += 3
         elif (crop_count >= 8):
             player.score += 4
-        print("곡식 개수 합계:", crop_count)
-        print("곡식 반영 결과:", player.score)
 
         # 채소 (밭 위) 개수 구하기
         board_positions = BoardPosition.objects.filter(board_id__player_id=player_id, vege_type=2)
         vege_count = board_positions.count()
-        print("채소 개수(밭 위):", vege_count)
         # 채소 (개인자원판) 개수 구하기
         player_resources = PlayerResource.objects.filter(player_id=player_id, resource_id=6)
         vege_count += player_resources.count()
-        print("채소 개수(개인자원판):", vege_count)
         # 채소 점수 계산
         if (vege_count == 0):
             player.score -= 1
         elif (1 <= vege_count <= 4):
             player.score += vege_count
-        print("채소 개수 합계:", vege_count)
-        print("채소 반영 결과:", player.score)
 
         # 카드 점수
         player_card = PlayerCard.objects.filter(player_id=player_id)
@@ -257,7 +239,6 @@ class PlayerBoardStatusViewSet(ModelViewSet):
                 player.score += 1
             if (score_card == 28):
                 player.score += 2
-        print("카드점수 반영 결과:", player.score)
 
 
         player.save()
