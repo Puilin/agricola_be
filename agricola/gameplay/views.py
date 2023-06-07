@@ -41,6 +41,53 @@ class AccountViewSet(ModelViewSet):
         player_id = player.id
         return Response({'message': 'Login Complete.', 'player_id': player_id}, status=status.HTTP_200_OK)
 
+    @action(detail=False, methods=['GET'])
+    def initial(self, request):
+        players = Player.objects.all()
+        for player in players:
+            player.adult_num = 2
+            player.baby_num = 0
+            player.fst_player = False
+            player.score = 0
+            player.remain_num = 2
+            player.save()
+        boards = PlayerBoardStatus.objects.all()
+        for board in boards:
+            board.house_num = 2
+            board.house_type = 0
+            board.cowshed_num = 0
+            board.fence_num = 0
+            board.pen_num = 0
+            board.save()
+        gamestatus = GameStatus.objects.first()
+        gamestatus.turn = 1
+        gamestatus.round = 5
+        gamestatus.save()
+        pens = PenPosition.objects.all().delete()
+        fences = FencePosition.objects.all().delete()
+        position = BoardPosition.objects.all()
+        for pos in position:
+            if pos.position in [1,2]:
+                pos.position_type = 1
+                pos.is_fam = True
+            else:
+                pos.position_type = 0
+                pos.is_fam = False
+            pos.vege_type = 0
+            pos.vege_num = 0
+            pos.animal_num = 0
+            pos.save()
+        playerresources = PlayerResource.objects.all()
+        for pr in playerresources:
+            if pr.resource_id in [1,2,3,4]:
+                pr.resource_num = 10
+            elif pr.resource_id == 10:
+                pr.resource_num = 2
+            else:
+                pr.resource_num = 0
+            pr.save()
+        return Response(status=200)
+
 class PlayerViewSet(ModelViewSet):
     queryset = Player.objects.all()
     serializer_class = PlayerSerializer
