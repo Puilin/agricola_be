@@ -18,7 +18,6 @@ class Player(models.Model):
 
 class PlayerBoardStatus(models.Model):
     player_id = models.ForeignKey('Player', on_delete=models.CASCADE)
-    score = models.IntegerField(null=False, default=0)
     house_type = models.IntegerField(null=False, default=0)
     house_num = models.IntegerField(null=False, default=0)
     cowshed_num = models.IntegerField(null=False, default=0)

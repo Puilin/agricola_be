@@ -9,7 +9,9 @@ from rest_framework import status
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 from .actions import *
+from .utils import get_adjacent_farmlands
 import json
+from django.db.models import Sum
 
 # Create your views here.
 class AccountViewSet(ModelViewSet):
@@ -80,9 +82,209 @@ class PlayerBoardStatusViewSet(ModelViewSet):
     queryset = PlayerBoardStatus.objects.all()
     serializer_class = PlayerBoardStatusSerializer
 
+    # 어떤 플레이어의 점수를 계산해줄 것인지 player_id을 받는다
+    @swagger_auto_schema(
+        method='get',
+        manual_parameters=[
+            openapi.Parameter('player_id', openapi.IN_QUERY, description='Player ID', type=openapi.TYPE_INTEGER),
+        ]
+    )
+
+    # 플레이어의 점수를 계산해주는 API
+    @action(detail=False, methods=['GET'])
+    def calculate_score(self, request):
+        player_id = request.query_params.get('player_id')
+
+        try:
+            player = Player.objects.get(id=player_id)
+        except Player.DoesNotExist:
+            return Response({'message': 'Player not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+        # 점수 넣는 변수 ('Player' model의 'score' field)
+        player.score = 0
+
+        board_positions = BoardPosition.objects.filter(id=player_id)
+        for position in board_positions:
+            position_type = position.position_type
+            # 빈 칸 : 1개 당 -1점
+            if position_type == 0:
+                player.score -= 1
+            # 울타리를 친 외양간 : 1개 당 1점
+            if position_type == 5:
+                player.score += 1
+
+        # 밭
+        field_count = board_positions.filter(board_id=player_id,position_type=2).count()
+        if (field_count == 0 or field_count == 1):
+            player.score -= 1
+        elif (2 <= field_count <= 4):
+            player.score += (field_count-1)
+        elif (field_count >= 5):
+            player.score += 4
+
+        # 우리 (칸 크기와 상관없이 울타리가 쳐져있는 영역의 수)
+        player_board_status = PlayerBoardStatus.objects.filter(player_id=player_id)
+        pen_num = 0
+        for board_status in player_board_status:
+            pen_num += board_status.pen_num
+        if pen_num == 0:
+            player.score -= 1
+        elif (1 <= pen_num <= 3):
+            player.score += pen_num
+        elif pen_num >= 4:
+            player.score += 4
+
+        for house_num in player_board_status:
+            house_type = house_num.house_type
+            # 흙집 : 1개 당 1점
+            if house_type == 1:
+                player.score += 1
+            # 돌집 : 1개 당 2점
+            elif house_type == 2:
+                player.score += 2
+
+        # 가족 말 : 1개 당 3점
+        total_fam_num = player.adult_num + player.baby_num + player.remain_num
+        player.score += (total_fam_num * 3)
+
+        # 구걸 토큰 : 1개 당 -3점
+        player_resource = PlayerResource.objects.filter(player_id=player_id, resource_id=11)
+        for resource in player_resource:
+            player.score += resource.resource_num * (-3)
+
+        # 양
+        sheep_resource = PlayerResource.objects.filter(player_id=player_id, resource_id=7)
+        sheep_count = sheep_resource.aggregate(total_sheep=Sum('resource_num'))['total_sheep']
+        if (sheep_count == 0):
+            player.score -= 1
+        elif (1 <= sheep_count <= 3):
+            player.score += 1
+        elif (4 <= sheep_count <= 5):
+            player.score += 2
+        elif (6 <= sheep_count <= 7):
+            player.score += 3
+        elif (sheep_count >= 8):
+            player.score += 4
+
+        # 돼지
+        pig_resource = PlayerResource.objects.filter(player_id=player_id, resource_id=8)
+        pig_count = pig_resource.aggregate(total_pig=Sum('resource_num'))['total_pig']
+        if (pig_count == 0):
+            player.score -= 1
+        elif (1 <= pig_count <= 2):
+            player.score += 1
+        elif (3 <= pig_count <= 4):
+            player.score += 2
+        elif (5 <= pig_count <= 6):
+            player.score += 3
+        elif (pig_count >= 7):
+            player.score += 4
+
+        # 소
+        cow_resource = PlayerResource.objects.filter(player_id=player_id, resource_id=9)
+        cow_count = cow_resource.aggregate(total_cow=Sum('resource_num'))['total_cow']
+        if (cow_count == 0):
+            player.score -= 1
+        elif (cow_count == 1):
+            player.score += 1
+        elif (2 <= cow_count <= 3):
+            player.score += 2
+        elif (4 <= cow_count <= 5):
+            player.score += 3
+        elif (cow_count >= 6):
+            player.score += 4
+
+        # 곡식 (밭 위) 개수 구하기
+        board_positions = BoardPosition.objects.filter(board_id__player_id=player_id, vege_type=1)
+        crop_count = board_positions.count()
+        # 곡식 (개인자원판) 개수 구하기
+        player_resources = PlayerResource.objects.filter(player_id=player_id, resource_id=5)
+        crop_count += player_resources.count()
+        # 곡식 점수 계산
+        if (crop_count == 0):
+            player.score -= 1
+        elif (1 <= crop_count <= 3):
+            player.score += 1
+        elif (4 <= crop_count <= 5):
+            player.score += 2
+        elif (6 <= crop_count <= 7):
+            player.score += 3
+        elif (crop_count >= 8):
+            player.score += 4
+
+        # 채소 (밭 위) 개수 구하기
+        board_positions = BoardPosition.objects.filter(board_id__player_id=player_id, vege_type=2)
+        vege_count = board_positions.count()
+        # 채소 (개인자원판) 개수 구하기
+        player_resources = PlayerResource.objects.filter(player_id=player_id, resource_id=6)
+        vege_count += player_resources.count()
+        # 채소 점수 계산
+        if (vege_count == 0):
+            player.score -= 1
+        elif (1 <= vege_count <= 4):
+            player.score += vege_count
+
+        # 카드 점수 (활성화 된 상태여야 함)
+        player_card = PlayerCard.objects.filter(player_id=player_id,activate=1)
+        for card_num in player_card:
+            card_id_str = str(card_num.card_id)
+            card_id = int(card_id_str.split(" ")[2][1:-1])
+
+            if (card_id == 16):
+                player.score += 1
+            if (card_id == 19):
+                player.score += 1
+            if (card_id == 21):
+                player.score += 1
+            if (card_id == 24):
+                player.score += 1
+            if (card_id == 26):
+                player.score += 1
+            if (card_id == 28):
+                player.score += 2
+
+        player.save()
+
+        return Response({'player_id': player_id, 'score': player.score})
+
+
 class BoardPositionViewSet(ModelViewSet):
     queryset = BoardPosition.objects.all()
     serializer_class = BoardPositionSerializer
+
+    @swagger_auto_schema(
+        method='put',
+        request_body=openapi.Schema(
+            type=openapi.TYPE_OBJECT,
+            properties={
+                'player_id': openapi.Schema(type=openapi.TYPE_INTEGER),
+                'land_num': openapi.Schema(type=openapi.TYPE_INTEGER)
+            }
+        )
+    )
+    @action(detail=False, methods=['PUT'])
+    def construct_land(self, request):
+        player_id = request.data.get('player_id')
+        land = request.data.get('land_num')
+
+        player = Player.objects.get(id=player_id)
+        board = PlayerBoardStatus.objects.get(player_id=player)
+        board_pos = self.queryset.filter(board_id=board)
+        position = board_pos.get(board_id=board, position=land)
+
+        # 처음 밭을 가는 경우
+        if count_farmlands(board_pos) == 0:
+            position.position_type = 2 # 밭
+            position.save()
+            serializer = self.serializer_class(position)
+            return Response(serializer.data)
+        # 인접한지 체크
+        if not land in get_adjacent_farmlands(board_pos):
+            return Response({'error':"That land is not adjacent with your farmland"}, status=403)
+        position.position_type = 2 # 밭
+        position.save()
+        serializer = self.serializer_class(position)
+        return Response(serializer.data)
 
 class FencePositionViewSet(ModelViewSet):
     queryset = FencePosition.objects.all()
@@ -256,13 +458,6 @@ class MainFacilityCardViewSet(ModelViewSet):
     queryset = MainFacilityCard.objects.all()
     serializer_class = MainFacilityCardSerializer
 
-    @action(detail=False, methods=['post'])
-    def get_mainfacility(self, request):
-        # choice_card = request.data.get('card_id')
-        # active_card = player_card.get(card_id = choice_card)
-        # active_card.
-        return
-
 
 class ActionBoxViewSet(ModelViewSet):
     queryset = ActionBox.objects.all()
@@ -278,11 +473,17 @@ class GameStatusViewSet(ModelViewSet):
         turn_counter = game_status.turn
         return Response({'turn': turn_counter})
     
+    @swagger_auto_schema(
+        method='put',
+        request_body=None
+    )
     @action(detail=False, methods=['put'])
     def round_end(self, request):
         players = Player.objects.all()
         for player in players:
+            player.adult_num += player.baby_num
             player.remain_num = player.adult_num
+            player.baby_num = 0
             player.save()
 
         actionboxes = ActionBox.objects.all()
@@ -294,10 +495,15 @@ class GameStatusViewSet(ModelViewSet):
             actionbox.is_occupied = False
             actionbox.save()
 
-        game_status = GameStatus.objects.all()
+        game_status = GameStatus.objects.first()
         game_status.round += 1
         game_status.turn = 1
         game_status.save()
+
+        familyposition = FamilyPosition.objects.all()
+        familyposition.delete()
+
+        return Response({'next round':game_status.round, 'turn':game_status.turn})
 
     @action(detail=False, methods=['put'])
     def priod_end(self, request):
@@ -370,6 +576,7 @@ class FamilyPositionViewSet(ModelViewSet):
         # Load the player ID and action ID from the request data
         player_id = request.data.get('player_id')
         action_id = request.data.get('action_id')
+        card_id = request.data.get('card_id')
 
         # Get the player and action objects
         player = Player.objects.get(id=player_id)
@@ -402,14 +609,18 @@ class FamilyPositionViewSet(ModelViewSet):
             # 숲
             elif action_id == 11:
                 response = forest(player)
+            # 농지
+            elif action_id == 12:
+                response = farmland(player)
             #집개조
             elif action_id == 21:
                 response = house_upgrade(player)
-
+                player_card = PlayerCardViewSet()
+                player_card.activate_card({'player_id': player_id, 'card_id':card_id})
             
             # 코드가 404면 -> 해당 행동이 거부됨 ->함수 종료
             if response.status_code == 404:
-                return
+                return response
 
             # 턴 카운터 업데이트
             game_status.turn = turn_counter + 1
@@ -607,3 +818,21 @@ class PlayerResourceViewSet(ModelViewSet):
 class PlayerCardViewSet(ModelViewSet):
     queryset = PlayerCard.objects.all()
     serializer_class = PlayerCardSerializer
+
+    @action(detail=False, methods=['post'])
+    def activate_card(self, request):
+        #어떤플레이어가 어떤카드를 활성화시킬건지
+        my_id = request.data.get('player_id')
+        choice_card = request.data.get('card_id')
+        active_card = PlayerCard.objects.get(card_id = choice_card)
+        active_costs = ActivationCost.objects.filter(card_id = choice_card)
+        for active_cost in active_costs:
+            my_resource = PlayerResource.objects.get(player_id = my_id, resource_id = active_cost.resource_id)
+            if my_resource.resource_num < active_cost.resource_num:
+                return Response({'detail': 'Not enough resources'}, status=404)
+            else:
+                my_resource.resource_num -= active_cost.resource_num
+        active_card.activate = 1
+        active_card.save()
+        my_resource.save()
+        return Response({'message': 'Activate Success'})
