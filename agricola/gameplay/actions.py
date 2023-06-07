@@ -1,6 +1,7 @@
 from .models import *
 from .serializer import *
 from rest_framework.response import Response
+from .utils import count_farmlands, get_adjacent_farmlands
 
 def forest(player):
     forest_action = ActionBox.objects.get(id=11)
@@ -66,7 +67,7 @@ def house_upgrade(player):
     #나무집 -> 흙집
     if my_board.house_type == 0:
         soil = PlayerResource.objects.get(player_id=player.id, resource_id=2)
-        if reed.resource_num >= my_board.house_num and soil >= my_board.house_num:
+        if reed.resource_num >= my_board.house_num and soil.resource_num >= my_board.house_num:
             reed.resource_num -= my_board.house_num
             soil.resource_num -= my_board.house_num
             my_board.house_type = 1
@@ -75,7 +76,7 @@ def house_upgrade(player):
     #흑집 -> 돌집    
     elif my_board.house_type == 1:
         stone = PlayerResource.objects.get(player_id=player.id, resource_id=4)
-        if reed >= my_board.house_num and soil >= my_board.house_num:
+        if reed.resource_num >= my_board.house_num and soil >= my_board.house_num:
             reed.resource_num -= my_board.house_num
             stone.resource_num -= my_board.house_num
             my_board.house_type = 2
@@ -88,3 +89,23 @@ def house_upgrade(player):
 
     serializer = PlayerBoardStatusSerializer(my_board)
     return Response(serializer.data)
+
+def farmland(player):
+    farmland_action = ActionBox.objects.get(id=12)
+    #농지 칸에 누군가 있으면
+    if farmland_action.is_occupied:
+        return Response({'detail': 'There\'s someone else in farmland'}, status=404)
+    #농지 칸에 이제 사람이 있음
+    farmland_action.is_occupied = True
+    farmland_action.save()
+
+    board = PlayerBoardStatus.objects.get(player_id=player)
+    board_pos = BoardPosition.objects.filter(board_id=board) # queryset
+    
+    if count_farmlands(board_pos) == 0: # 처음 밭을 가는 경우
+        empty_lands = board_pos.filter(position_type=0) # 빈땅 리스트
+        board_pos_list = empty_lands.values_list('position', flat=True) # 포지션 번호만 추출
+        return Response({'lands':board_pos_list})
+    else: # 밭이 하나 이상일 경우
+        possible_positions = get_adjacent_farmlands(board_pos)
+        return Response({'lands':possible_positions})
