@@ -371,6 +371,35 @@ class BoardPositionViewSet(ModelViewSet):
         serializer = self.serializer_class(position)
         return Response(serializer.data)
 
+    @swagger_auto_schema(
+        method='post',
+        request_body=openapi.Schema(
+            type=openapi.TYPE_OBJECT,
+            properties={
+                'player_id': openapi.Schema(type=openapi.TYPE_INTEGER)
+            }
+        )
+    )
+    @action(detail=False, methods=['POST'])
+    def get_all_position(self, request): # { "player_id" : 1 }
+        player_id = request.data.get('player_id')
+        board_status = PlayerBoardStatus.objects.get(player_id=player_id)
+        board_status_id = board_status.id
+        board_position = BoardPosition.objects.filter(board_id=board_status_id)
+        board_position_arr = list(board_position)
+        animal_type = []
+        for i in range(15):
+            animal_type.append(0)
+        pen_positions = PenPosition.objects.filter(board_id=board_status_id)
+        if pen_positions.exists():
+            for pen_position in pen_positions:
+                position_list = eval(pen_position.position_list)
+                for position in position_list:
+                    animal_type[position - 1] = pen_position.animal_type
+        serializer = self.serializer_class(board_position_arr, many=True)
+        return Response({"animal_type" : animal_type, "position_arr": serializer.data})
+
+
 class FencePositionViewSet(ModelViewSet):
     queryset = FencePosition.objects.all()
     serializer_class = FencePositionSerializer
@@ -420,6 +449,16 @@ class FencePositionViewSet(ModelViewSet):
                     return positions
         return False
 
+    @swagger_auto_schema(
+        method='post',
+        request_body=openapi.Schema(
+            type=openapi.TYPE_OBJECT,
+            properties={
+                'player_id': openapi.Schema(type=openapi.TYPE_INTEGER),
+                'fence_array': openapi.Schema(type=openapi.TYPE_INTEGER)
+            }
+        )
+    )
     @action(detail=False, methods=['POST'])
     def build_fence(self, request): # { "player_id": 12, "fence_array": [[1, 2, 7], [6]] }
         player_id = request.data.get('player_id')
@@ -444,8 +483,6 @@ class FencePositionViewSet(ModelViewSet):
                 fence_array = [sublist for sublist in fence_array if sublist != new_position]
 
         fence_array = fst_fence_array
-
-        serializer = FencePositionSerializer
 
         # db에 추가
         fence_position_arr = []
