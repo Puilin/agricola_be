@@ -102,8 +102,9 @@ class PlayerBoardStatusViewSet(ModelViewSet):
 
         # 점수 넣는 변수 ('Player' model의 'score' field)
         player.score = 0
+        print("점수 변수 초기화:", player.score)
 
-        board_positions = BoardPosition.objects.filter(id=player_id)
+        board_positions = BoardPosition.objects.filter(board_id=player_id)
         for position in board_positions:
             position_type = position.position_type
             # 빈 칸 : 1개 당 -1점
@@ -112,6 +113,7 @@ class PlayerBoardStatusViewSet(ModelViewSet):
             # 울타리를 친 외양간 : 1개 당 1점
             if position_type == 5:
                 player.score += 1
+        print("빈칸, 울타리외양간", player.score)
 
         # 밭
         field_count = board_positions.filter(board_id=player_id,position_type=2).count()
@@ -121,6 +123,7 @@ class PlayerBoardStatusViewSet(ModelViewSet):
             player.score += (field_count-1)
         elif (field_count >= 5):
             player.score += 4
+        print("밭:", player.score)
 
         # 우리 (칸 크기와 상관없이 울타리가 쳐져있는 영역의 수)
         player_board_status = PlayerBoardStatus.objects.filter(player_id=player_id)
@@ -133,6 +136,7 @@ class PlayerBoardStatusViewSet(ModelViewSet):
             player.score += pen_num
         elif pen_num >= 4:
             player.score += 4
+        print("우리", player.score)
 
         for house_num in player_board_status:
             house_type = house_num.house_type
@@ -142,15 +146,18 @@ class PlayerBoardStatusViewSet(ModelViewSet):
             # 돌집 : 1개 당 2점
             elif house_type == 2:
                 player.score += 2
+        print("흙집, 돌집:", player.score)
 
         # 가족 말 : 1개 당 3점
         total_fam_num = player.adult_num + player.baby_num + player.remain_num
         player.score += (total_fam_num * 3)
+        print("가족 말:", player.score)
 
         # 구걸 토큰 : 1개 당 -3점
         player_resource = PlayerResource.objects.filter(player_id=player_id, resource_id=11)
         for resource in player_resource:
             player.score += resource.resource_num * (-3)
+            print("구걸토큰:", player.score)
 
         # 양
         sheep_resource = PlayerResource.objects.filter(player_id=player_id, resource_id=7)
@@ -165,6 +172,7 @@ class PlayerBoardStatusViewSet(ModelViewSet):
             player.score += 3
         elif (sheep_count >= 8):
             player.score += 4
+        print("양:", player.score)
 
         # 돼지
         pig_resource = PlayerResource.objects.filter(player_id=player_id, resource_id=8)
@@ -179,6 +187,7 @@ class PlayerBoardStatusViewSet(ModelViewSet):
             player.score += 3
         elif (pig_count >= 7):
             player.score += 4
+        print("돼지:", player.score)
 
         # 소
         cow_resource = PlayerResource.objects.filter(player_id=player_id, resource_id=9)
@@ -193,6 +202,7 @@ class PlayerBoardStatusViewSet(ModelViewSet):
             player.score += 3
         elif (cow_count >= 6):
             player.score += 4
+        print("소:", player.score)
 
         # 곡식 (밭 위) 개수 구하기
         board_positions = BoardPosition.objects.filter(board_id__player_id=player_id, vege_type=1)
@@ -211,6 +221,7 @@ class PlayerBoardStatusViewSet(ModelViewSet):
             player.score += 3
         elif (crop_count >= 8):
             player.score += 4
+        print("곡식:", player.score)
 
         # 채소 (밭 위) 개수 구하기
         board_positions = BoardPosition.objects.filter(board_id__player_id=player_id, vege_type=2)
@@ -223,9 +234,10 @@ class PlayerBoardStatusViewSet(ModelViewSet):
             player.score -= 1
         elif (1 <= vege_count <= 4):
             player.score += vege_count
+        print("채소:", player.score)
 
         # 카드 점수 (활성화 된 상태여야 함)
-        player_card = PlayerCard.objects.filter(player_id=player_id,activate=1)
+        player_card = PlayerCard.objects.filter(player_id=player_id, activate=1)
         for card_num in player_card:
             card_id_str = str(card_num.card_id)
             card_id = int(card_id_str.split(" ")[2][1:-1])
@@ -242,7 +254,7 @@ class PlayerBoardStatusViewSet(ModelViewSet):
                 player.score += 1
             if (card_id == 28):
                 player.score += 2
-
+            print("점수카드:", player.score)
         player.save()
 
         return Response({'player_id': player_id, 'score': player.score})
