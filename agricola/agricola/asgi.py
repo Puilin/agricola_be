@@ -16,14 +16,14 @@ from django.core.asgi import get_asgi_application
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'agricola.settings')
 
-import agricola.gameplay.routing
+import gameplay.routing
 
 application = ProtocolTypeRouter({
   "http": get_asgi_application(),
   "websocket": AllowedHostsOriginValidator(
         AuthMiddlewareStack(
             URLRouter(
-                agricola.gameplay.routing.websocket_urlpatterns	# chat 은 routing.py 가 들어있는 앱 이름
+                gameplay.routing.websocket_urlpatterns
             )
         )
     ),
