@@ -346,8 +346,8 @@ class FencePositionViewSet(ModelViewSet):
         return position_id
 
     def get_boardid_with_playerid(self, player_id):
-        board_queryset = PlayerBoardStatus.objects.filter(player_id = player_id)
-        board_id = board_queryset.first().id # 추후에 게임이 여러 개일 경우 어느 게임의 보드인지 구분 필요
+        board_queryset = PlayerBoardStatus.objects.get(player_id = player_id)
+        board_id = board_queryset.id # 추후에 게임이 여러 개일 경우 어느 게임의 보드인지 구분 필요
         return board_id
 
     def get_fencepositions_with_boardid(self, board_id):

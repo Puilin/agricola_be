@@ -35,6 +35,7 @@ class BoardPosition(models.Model):
 
 class FencePosition(models.Model):
     position_id = models.ForeignKey('BoardPosition', on_delete=models.CASCADE)
+    player_id = models.IntegerField(null=False)
     left = models.BooleanField(null=False, default=False)
     top = models.BooleanField(null=False, default=False)
     right = models.BooleanField(null=False, default=False)
