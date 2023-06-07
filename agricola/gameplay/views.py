@@ -335,6 +335,52 @@ class PlayerBoardStatusViewSet(ModelViewSet):
 
         return Response({'player_id': player_id, 'score': player.score})
 
+    @swagger_auto_schema(
+        method='put',
+        request_body=openapi.Schema(
+            type=openapi.TYPE_OBJECT,
+            properties={
+                'player_id' : openapi.TYPE_INTEGER,
+                'animal_type': openapi.TYPE_INTEGER,
+                'position': openapi.TYPE_INTEGER
+            }
+        )
+    )
+    @action(detail=False, methods=['put'])
+    def raise_animal(self, request):
+        player_id = request.data.get('player_id')
+        animal_type = request.data.get('animal_type')
+        position = request.data.get('position')
+
+        player = Player.objects.get(id=player_id)
+        board = self.queryset.get(player_id=player)
+        slot = BoardPosition.objects.filter(board_id=board).get(position=position) # 칸번호로 포지션 받아오기
+
+        position_type = slot.position_type
+        # 우리가 아님
+        if position_type in [0,1,2]:
+            return Response({'error':'that position is not pen'}, status=403)
+        
+        # 해당 칸에 동물이 아무도 없으면
+        if slot.animal_num == 0:
+            if (update_animal_type(board, position, animal_type)):
+                slot.animal_num += 1
+                slot.save()
+                return Response({'message':'succeess for raise_animal'})
+            else:
+                return Response({'error':'update_animal_type'}, status=500)
+        else:
+            if position_type == 3: # 울타리 -> 최대 2마리
+                max_num = 2
+            elif position_type == 4: # 외양간 -> 최대 1마리
+                max_num = 1
+            elif position_type == 5: # 울타리외양간 -> 최대 4마리
+                max_num = 4
+            if slot.animal_num == max_num:
+                return Response({'error':'That slot has maximum number of animals.'}, status=403)
+            # 우리의 가축 종류와 요청한 가축 종류가 같지 않다면
+            if animal_type != get_animal_type(board, position):
+                return Response({'error':'Only the same type of animal can be put here.'}, status=403)
 
 
 class BoardPositionViewSet(ModelViewSet):
@@ -770,6 +816,7 @@ class FamilyPositionViewSet(ModelViewSet):
             # 농지
             elif action_id == 12:
                 response = farmland(player)
+            # 양시장
             elif action_id == 18:
                 response = sheep_market(player)
             #집개조

@@ -1,7 +1,7 @@
 from .models import *
 from .serializer import *
 from rest_framework.response import Response
-from .utils import count_farmlands, get_adjacent_farmlands
+from .utils import *
 
 def forest(player):
     forest_action = ActionBox.objects.get(id=11)
@@ -123,5 +123,24 @@ def sheep_market(player):
     board = PlayerBoardStatus.objects.get(player_id=player)
     board_pos = BoardPosition.objects.filter(board_id=board) # queryset
 
+    # 양시장 이용 조건 체크
+    cond1, cond2 = True, True
+    # 양을 키울수 있는 공간이 있는지 체크
     if count_pens(board_pos) == 0:
-        pass
+        cond1 = False
+    
+    # 양을 식량으로 바꿀 수 있는 설비가 있는지 체크
+    if not does_have_cooking_facility(player):
+        cond2 = False
+
+    if cond1 and cond2:
+        return Response({"case":1, "massege": "You can raise them(it) or cook them (it)"},status=200)
+    elif cond1:
+        return Response({"case":2, "massege": "You can raise them(it)"},status=200)
+    elif cond2:
+        return Response({"case":3, "massege": "You can cook them(it)"},status=200)
+    else:
+        sheep_market_action.is_occupied = False
+        sheep_market_action.save()
+        return Response({"case":0, "error": "You don't have neither pens nor main facilities for cooking"}, status=404)
+    
