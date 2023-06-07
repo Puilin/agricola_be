@@ -96,3 +96,13 @@ class PlayerCardSerializer(serializers.ModelSerializer):
     class Meta:
         model = PlayerCard
         fields = '__all__'
+
+class RoomSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Room
+        fields = '__all__'
+
+class PenPositionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PenPosition
+        fields = '__all__'
