@@ -345,10 +345,9 @@ class FencePositionViewSet(ModelViewSet):
         position_id = position_queryset.id
         return position_id
 
-    def get_boardid_with_playerid(self, player_id):
+    def get_board_with_playerid(self, player_id):
         board_queryset = PlayerBoardStatus.objects.get(player_id = player_id)
-        board_id = board_queryset.id # 추후에 게임이 여러 개일 경우 어느 게임의 보드인지 구분 필요
-        return board_id
+        return board_queryset
 
     def get_fencepositions_with_boardid(self, board_id):
         positions = BoardPosition.objects.filter(board_id = board_id, position_type=3).values_list('position', flat=True)
@@ -389,17 +388,19 @@ class FencePositionViewSet(ModelViewSet):
     @action(detail=False, methods=['POST'])
     def build_fence(self, request): # { "player_id": 12, "fence_array": [[1, 2, 7], [6]] }
         player_id = request.data.get('player_id')
-        print(f'player_id: {player_id} fence_array: {request.data.get("fence_array")}')
-        board_id = self.get_boardid_with_playerid(player_id)
+        board = self.get_board_with_playerid(player_id)
+        board_id = board.id
         fst_fence_array = request.data.get('fence_array') # 추가하고 싶은 울타리들의 포지션 배열
         fence_array = fst_fence_array
         ex_fence_array = self.get_fencepositions_with_boardid(board_id) # 기존에 가지고 있던 울타리들의 포지션 배열
         invalid_position = self.get_invalid_position(board_id)  # 집, 밭 포지션
         valid_position = self.get_valid_position(ex_fence_array, invalid_position) # fence_array에 포함되어야 하는 포지션
+        print(f'ex_fence_array: {ex_fence_array}\ninvalid_positioin: {invalid_position}\nvalid_position: {valid_position}')
         pen_num = len(fence_array)
 
         while (len(fence_array) > 0): # 유효한 울타리인지 검사
             new_position = self.is_in_valid(fence_array, valid_position)
+            print(f'new_position: {new_position}')
             if new_position == False:
                 return Response({'error': 'wrong position.'}, status=status.HTTP_403_FORBIDDEN)
             else:
@@ -412,6 +413,7 @@ class FencePositionViewSet(ModelViewSet):
         serializer = FencePositionSerializer
 
         # db에 추가
+        fence_position_arr = []
         for fences in fence_array:
             for i in range(len(fences)):
                 left, right, top, bottom = [True, True, True, True]
@@ -433,21 +435,32 @@ class FencePositionViewSet(ModelViewSet):
                 # FencePosition 개체 생성 및 속성 설정
                 fence_position = FencePosition()
                 fence_position.position_id = board_position
+                fence_position.player_id = player_id
                 fence_position.left = left
                 fence_position.right = right
                 fence_position.top = top
                 fence_position.bottom = bottom
                 fence_position.save()
 
+                fence_position_arr.append(fence_position)
 
-
+                # player_board_status의 우리 개수 update
                 player_board_status = PlayerBoardStatus.objects.get(id=board_id)
                 pen = player_board_status.pen_num
                 pen = pen + pen_num
                 player_board_status.pen_num = pen
                 player_board_status.save()
 
-        return Response({"message": "fence update complete.", "position_arr" : fence}, status=status.HTTP_200_OK)
+            # pen_position에 인스턴스 추가
+            pen_position = PenPosition()
+            pen_position.board_id = board
+            pen_position.position_list = f"{fences}"
+            pen_position.max_num = len(fences) * 2
+            pen_position.save()
+
+        serializer = self.serializer_class(fence_position_arr, many=True)
+
+        return Response({"message": "fence update complete.", "position_arr" : serializer.data}, status=status.HTTP_201_CREATED)
 class PeriodCardViewSet(ModelViewSet):
     queryset = PeriodCard.objects.all()
     serializer_class = PeriodCardSerializer
@@ -886,3 +899,7 @@ class PlayerCardViewSet(ModelViewSet):
         active_card.save()
         my_resource.save()
         return Response({'message': 'Activate Success'})
+
+class PenPositionViewSet(ModelViewSet):
+    queryset = PenPosition.objects.all()
+    serializer_class = PenPositionSerializer
