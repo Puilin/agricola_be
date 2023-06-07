@@ -224,21 +224,23 @@ class PlayerBoardStatusViewSet(ModelViewSet):
         elif (1 <= vege_count <= 4):
             player.score += vege_count
 
-        # 카드 점수
-        player_card = PlayerCard.objects.filter(player_id=player_id)
-        for card in player_card:
-            score_card = card.card_id
-            if (score_card == 16):
+        # 카드 점수 (활성화 된 상태여야 함)
+        player_card = PlayerCard.objects.filter(player_id=player_id,activate=1)
+        for card_num in player_card:
+            card_id_str = str(card_num.card_id)
+            card_id = int(card_id_str.split(" ")[2][1:-1])
+
+            if (card_id == 16):
                 player.score += 1
-            if (score_card == 19):
+            if (card_id == 19):
                 player.score += 1
-            if (score_card == 21):
+            if (card_id == 21):
                 player.score += 1
-            if (score_card == 24):
+            if (card_id == 24):
                 player.score += 1
-            if (score_card == 26):
+            if (card_id == 26):
                 player.score += 1
-            if (score_card == 28):
+            if (card_id == 28):
                 player.score += 2
 
         player.save()
