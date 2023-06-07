@@ -41,6 +41,90 @@ class AccountViewSet(ModelViewSet):
         player_id = player.id
         return Response({'message': 'Login Complete.', 'player_id': player_id}, status=status.HTTP_200_OK)
 
+    @action(detail=False, methods=['GET'])
+    def initial(self, request):
+        players = Player.objects.all()
+        for player in players:
+            player.adult_num = 2
+            player.baby_num = 0
+            player.fst_player = False
+            player.score = 0
+            player.remain_num = 2
+            player.save()
+        boards = PlayerBoardStatus.objects.all()
+        for board in boards:
+            board.house_num = 2
+            board.house_type = 0
+            board.cowshed_num = 0
+            board.fence_num = 0
+            board.pen_num = 0
+            board.save()
+        gamestatus = GameStatus.objects.first()
+        gamestatus.turn = 1
+        gamestatus.round = 5
+        gamestatus.save()
+        pens = PenPosition.objects.all().delete()
+        fences = FencePosition.objects.all().delete()
+        position = BoardPosition.objects.all()
+        for pos in position:
+            if pos.position in [1,2]:
+                pos.position_type = 1
+                pos.is_fam = True
+            else:
+                pos.position_type = 0
+                pos.is_fam = False
+            pos.vege_type = 0
+            pos.vege_num = 0
+            pos.animal_num = 0
+            pos.save()
+        playerresources = PlayerResource.objects.all()
+        for pr in playerresources:
+            if pr.resource_id in [1,2,3,4]:
+                pr.resource_num = 10
+            elif pr.resource_id == 10:
+                pr.resource_num = 2
+            else:
+                pr.resource_num = 0
+            pr.save()
+        return Response(status=200)
+
+class PlayerViewSet(ModelViewSet):
+    queryset = Player.objects.all()
+    serializer_class = PlayerSerializer
+
+    @swagger_auto_schema(
+    responses={
+        200: openapi.Response(
+            description='Success',
+            schema=openapi.Schema(
+                type=openapi.TYPE_OBJECT,
+                properties={
+                    'success': openapi.Schema(type=openapi.TYPE_BOOLEAN),
+                    'first_player': openapi.Schema(type=openapi.TYPE_INTEGER),
+                },
+                required=['name'],
+            ),
+            examples={
+                'application/json': {
+                    'success' : True,
+                    'first_player' : 1
+                }
+            }
+        ),
+    }
+    )
+    @action(detail=False, methods=['GET'])
+    def choose_first_player(self, request):
+        players = self.get_queryset()
+        if players.exists():
+            first_player = choice(players)
+            players.update(fst_player=False)  # 모든 플레이어의 'fst_player' 필드를 False로 변경
+            first_player.fst_player = True  # 선택된 선 플레이어의 'fst_player' 필드를 True로 설정
+            first_player.save()
+            return Response({'success': True, 'first_player': first_player.id})
+        else:
+            return Response({'success': False, 'message': 'No players found.'})
+
 class PlayerViewSet(ModelViewSet):
     queryset = Player.objects.all()
     serializer_class = PlayerSerializer
@@ -102,8 +186,9 @@ class PlayerBoardStatusViewSet(ModelViewSet):
 
         # 점수 넣는 변수 ('Player' model의 'score' field)
         player.score = 0
+        print("점수 변수 초기화:", player.score)
 
-        board_positions = BoardPosition.objects.filter(id=player_id)
+        board_positions = BoardPosition.objects.filter(board_id=player_id)
         for position in board_positions:
             position_type = position.position_type
             # 빈 칸 : 1개 당 -1점
@@ -112,6 +197,7 @@ class PlayerBoardStatusViewSet(ModelViewSet):
             # 울타리를 친 외양간 : 1개 당 1점
             if position_type == 5:
                 player.score += 1
+        print("빈칸, 울타리외양간", player.score)
 
         # 밭
         field_count = board_positions.filter(board_id=player_id,position_type=2).count()
@@ -121,6 +207,7 @@ class PlayerBoardStatusViewSet(ModelViewSet):
             player.score += (field_count-1)
         elif (field_count >= 5):
             player.score += 4
+        print("밭:", player.score)
 
         # 우리 (칸 크기와 상관없이 울타리가 쳐져있는 영역의 수)
         player_board_status = PlayerBoardStatus.objects.filter(player_id=player_id)
@@ -133,6 +220,7 @@ class PlayerBoardStatusViewSet(ModelViewSet):
             player.score += pen_num
         elif pen_num >= 4:
             player.score += 4
+        print("우리", player.score)
 
         for house_num in player_board_status:
             house_type = house_num.house_type
@@ -142,15 +230,18 @@ class PlayerBoardStatusViewSet(ModelViewSet):
             # 돌집 : 1개 당 2점
             elif house_type == 2:
                 player.score += 2
+        print("흙집, 돌집:", player.score)
 
         # 가족 말 : 1개 당 3점
         total_fam_num = player.adult_num + player.baby_num + player.remain_num
         player.score += (total_fam_num * 3)
+        print("가족 말:", player.score)
 
         # 구걸 토큰 : 1개 당 -3점
         player_resource = PlayerResource.objects.filter(player_id=player_id, resource_id=11)
         for resource in player_resource:
             player.score += resource.resource_num * (-3)
+            print("구걸토큰:", player.score)
 
         # 양
         sheep_resource = PlayerResource.objects.filter(player_id=player_id, resource_id=7)
@@ -165,6 +256,7 @@ class PlayerBoardStatusViewSet(ModelViewSet):
             player.score += 3
         elif (sheep_count >= 8):
             player.score += 4
+        print("양:", player.score)
 
         # 돼지
         pig_resource = PlayerResource.objects.filter(player_id=player_id, resource_id=8)
@@ -179,6 +271,7 @@ class PlayerBoardStatusViewSet(ModelViewSet):
             player.score += 3
         elif (pig_count >= 7):
             player.score += 4
+        print("돼지:", player.score)
 
         # 소
         cow_resource = PlayerResource.objects.filter(player_id=player_id, resource_id=9)
@@ -193,6 +286,7 @@ class PlayerBoardStatusViewSet(ModelViewSet):
             player.score += 3
         elif (cow_count >= 6):
             player.score += 4
+        print("소:", player.score)
 
         # 곡식 (밭 위) 개수 구하기
         board_positions = BoardPosition.objects.filter(board_id__player_id=player_id, vege_type=1)
@@ -211,6 +305,7 @@ class PlayerBoardStatusViewSet(ModelViewSet):
             player.score += 3
         elif (crop_count >= 8):
             player.score += 4
+        print("곡식:", player.score)
 
         # 채소 (밭 위) 개수 구하기
         board_positions = BoardPosition.objects.filter(board_id__player_id=player_id, vege_type=2)
@@ -223,9 +318,10 @@ class PlayerBoardStatusViewSet(ModelViewSet):
             player.score -= 1
         elif (1 <= vege_count <= 4):
             player.score += vege_count
+        print("채소:", player.score)
 
         # 카드 점수 (활성화 된 상태여야 함)
-        player_card = PlayerCard.objects.filter(player_id=player_id,activate=1)
+        player_card = PlayerCard.objects.filter(player_id=player_id, activate=1)
         for card_num in player_card:
             card_id_str = str(card_num.card_id)
             card_id = int(card_id_str.split(" ")[2][1:-1])
@@ -242,10 +338,11 @@ class PlayerBoardStatusViewSet(ModelViewSet):
                 player.score += 1
             if (card_id == 28):
                 player.score += 2
-
+            print("점수카드:", player.score)
         player.save()
 
         return Response({'player_id': player_id, 'score': player.score})
+
 
 
 class BoardPositionViewSet(ModelViewSet):
@@ -295,10 +392,9 @@ class FencePositionViewSet(ModelViewSet):
         position_id = position_queryset.id
         return position_id
 
-    def get_boardid_with_playerid(self, player_id):
-        board_queryset = PlayerBoardStatus.objects.filter(player_id = player_id)
-        board_id = board_queryset.first().id # 추후에 게임이 여러 개일 경우 어느 게임의 보드인지 구분 필요
-        return board_id
+    def get_board_with_playerid(self, player_id):
+        board_queryset = PlayerBoardStatus.objects.get(player_id = player_id)
+        return board_queryset
 
     def get_fencepositions_with_boardid(self, board_id):
         positions = BoardPosition.objects.filter(board_id = board_id, position_type=3).values_list('position', flat=True)
@@ -314,7 +410,7 @@ class FencePositionViewSet(ModelViewSet):
 
     def get_valid_position(self, ex_fence_list, invalid_position):  # fence_list에 있는 포지션들의 주변 포지션을 리턴
         if not ex_fence_list:  # 기존에 설치한 울타리가 없다면
-            return list(range(1, 16))
+            return list(range(3, 16))
         valid_position = []
         for position in ex_fence_list:
             if ((position % 3) != 0):  # 오른쪽 끝이 아니면
@@ -330,28 +426,30 @@ class FencePositionViewSet(ModelViewSet):
         return valid_position
 
     def is_in_valid(self, fence_array, valid_position): # 울타리를 치고 싶은 포지션이 valid한지 검증
-        for positions in fence_array:
-            for position in positions:
-                if position in valid_position:
+        for positions in fence_array: # [8] /  [[8], [5, 6, 9]]
+            for position in positions: # 8  /  5 6 9
+                if position in valid_position: # [9, 11, 15]
                     return positions
         return False
 
     @action(detail=False, methods=['POST'])
     def build_fence(self, request): # { "player_id": 12, "fence_array": [[1, 2, 7], [6]] }
         player_id = request.data.get('player_id')
-        board_id = self.get_boardid_with_playerid(player_id)
+        board = self.get_board_with_playerid(player_id)
+        board_id = board.id
         fst_fence_array = request.data.get('fence_array') # 추가하고 싶은 울타리들의 포지션 배열
         fence_array = fst_fence_array
         ex_fence_array = self.get_fencepositions_with_boardid(board_id) # 기존에 가지고 있던 울타리들의 포지션 배열
         invalid_position = self.get_invalid_position(board_id)  # 집, 밭 포지션
         valid_position = self.get_valid_position(ex_fence_array, invalid_position) # fence_array에 포함되어야 하는 포지션
+        print(f'ex_fence_array: {ex_fence_array}\ninvalid_positioin: {invalid_position}\nvalid_position: {valid_position}')
         pen_num = len(fence_array)
 
-        while (pen_num > 0): # 유효한 울타리인지 검사
+        while (len(fence_array) > 0): # 유효한 울타리인지 검사
             new_position = self.is_in_valid(fence_array, valid_position)
+            print(f'new_position: {new_position}')
             if new_position == False:
                 return Response({'error': 'wrong position.'}, status=status.HTTP_403_FORBIDDEN)
-
             else:
                 ex_fence_array.extend(new_position)
                 valid_position = self.get_valid_position(ex_fence_array, invalid_position)
@@ -359,7 +457,10 @@ class FencePositionViewSet(ModelViewSet):
 
         fence_array = fst_fence_array
 
+        serializer = FencePositionSerializer
+
         # db에 추가
+        fence_position_arr = []
         for fences in fence_array:
             for i in range(len(fences)):
                 left, right, top, bottom = [True, True, True, True]
@@ -381,19 +482,32 @@ class FencePositionViewSet(ModelViewSet):
                 # FencePosition 개체 생성 및 속성 설정
                 fence_position = FencePosition()
                 fence_position.position_id = board_position
+                fence_position.player_id = player_id
                 fence_position.left = left
                 fence_position.right = right
                 fence_position.top = top
                 fence_position.bottom = bottom
                 fence_position.save()
 
+                fence_position_arr.append(fence_position)
+
+                # player_board_status의 우리 개수 update
                 player_board_status = PlayerBoardStatus.objects.get(id=board_id)
                 pen = player_board_status.pen_num
                 pen = pen + pen_num
                 player_board_status.pen_num = pen
                 player_board_status.save()
 
-        return Response({"message": "fence update complete."}, status=status.HTTP_200_OK)
+            # pen_position에 인스턴스 추가
+            pen_position = PenPosition()
+            pen_position.board_id = board
+            pen_position.position_list = f"{fences}"
+            pen_position.max_num = len(fences) * 2
+            pen_position.save()
+
+        serializer = self.serializer_class(fence_position_arr, many=True)
+
+        return Response({"message": "fence update complete.", "position_arr" : serializer.data}, status=status.HTTP_201_CREATED)
 class PeriodCardViewSet(ModelViewSet):
     queryset = PeriodCard.objects.all()
     serializer_class = PeriodCardSerializer
@@ -848,3 +962,7 @@ class PlayerCardViewSet(ModelViewSet):
         active_card.activate = 1
         active_card.save()
         return Response({'message': 'Activate Success'})
+
+class PenPositionViewSet(ModelViewSet):
+    queryset = PenPosition.objects.all()
+    serializer_class = PenPositionSerializer

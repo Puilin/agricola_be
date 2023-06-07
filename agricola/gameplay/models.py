@@ -31,11 +31,11 @@ class BoardPosition(models.Model):
     is_fam = models.BooleanField(null=False, default=False)
     vege_type = models.IntegerField(null=False, default=0)
     vege_num = models.IntegerField(null=False, default=0)
-    animal_type = models.IntegerField(null=False, default=0)
     animal_num = models.IntegerField(null=False, default=0)
 
 class FencePosition(models.Model):
     position_id = models.ForeignKey('BoardPosition', on_delete=models.CASCADE)
+    player_id = models.IntegerField(null=False)
     left = models.BooleanField(null=False, default=False)
     top = models.BooleanField(null=False, default=False)
     right = models.BooleanField(null=False, default=False)
@@ -105,3 +105,14 @@ class PlayerCard(models.Model):
     player_id = models.ForeignKey('Player', on_delete=models.CASCADE)
     card_id = models.ForeignKey('Card', null=True, on_delete=models.CASCADE)
     activate = models.IntegerField(null = False, default=0)
+
+class Room(models.Model):
+    name = models.CharField(max_length=100)
+    participants = models.ManyToManyField('Player')
+
+class PenPosition(models.Model):
+    board_id = models.ForeignKey('PlayerBoardStatus', on_delete=models.CASCADE)
+    animal_type = models.IntegerField(null=False, default=0)
+    max_num = models.IntegerField(null=False, default=2)
+    current_num = models.IntegerField(null=False, default=0)
+    position_list = models.CharField(max_length=100)
