@@ -966,7 +966,7 @@ class PlayerCardViewSet(ModelViewSet):
     queryset = PlayerCard.objects.all()
     serializer_class = PlayerCardSerializer
 
-    @action(detail=False, method=['get'])
+    @action(detail=False, methods=['get'])
     def activable_check(self, request):
         my_id = request.data.get('player_id')
 
