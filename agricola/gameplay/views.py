@@ -388,6 +388,7 @@ class BoardPositionViewSet(ModelViewSet):
         board_position = BoardPosition.objects.filter(board_id=board_status_id)
         board_position_arr = list(board_position)
         animal_type = []
+        house_type = board_status.house_type
         for i in range(15):
             animal_type.append(0)
         pen_positions = PenPosition.objects.filter(board_id=board_status_id)
@@ -397,7 +398,7 @@ class BoardPositionViewSet(ModelViewSet):
                 for position in position_list:
                     animal_type[position - 1] = pen_position.animal_type
         serializer = self.serializer_class(board_position_arr, many=True)
-        return Response({"animal_type" : animal_type, "position_arr": serializer.data})
+        return Response({"house_type": house_type,"animal_type": animal_type, "position_arr": serializer.data})
 
 
 class FencePositionViewSet(ModelViewSet):
