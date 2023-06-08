@@ -79,9 +79,9 @@ class AccountViewSet(ModelViewSet):
             pos.save()
         playerresources = PlayerResource.objects.all()
         for pr in playerresources:
-            if pr.resource_id in [1,2,3,4]:
+            if pr.resource_id_id in [1,2,3,4]:
                 pr.resource_num = 10
-            elif pr.resource_id == 10:
+            elif pr.resource_id_id == 10:
                 pr.resource_num = 2
             else:
                 pr.resource_num = 0
@@ -455,7 +455,13 @@ class FencePositionViewSet(ModelViewSet):
             type=openapi.TYPE_OBJECT,
             properties={
                 'player_id': openapi.Schema(type=openapi.TYPE_INTEGER),
-                'fence_array': openapi.Schema(type=openapi.TYPE_INTEGER)
+                'fence_array': openapi.Schema(
+                    type=openapi.TYPE_ARRAY,
+                    items=openapi.Schema(
+                        type=openapi.TYPE_ARRAY,
+                        items=openapi.Schema(type=openapi.TYPE_INTEGER)
+                    )
+                )
             }
         )
     )
@@ -966,7 +972,7 @@ class PlayerCardViewSet(ModelViewSet):
     queryset = PlayerCard.objects.all()
     serializer_class = PlayerCardSerializer
 
-    @action(detail=False, method=['get'])
+    @action(detail=False, methods=['get'])
     def activable_check(self, request):
         my_id = request.data.get('player_id')
 
