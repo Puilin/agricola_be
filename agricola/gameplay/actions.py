@@ -60,12 +60,11 @@ def house_upgrade(player):
         return Response({'detail': 'There\'s someone else in house upgrade'}, status=404)
     #집개조 칸에 이제 사람이 있음
     house_action.is_occupied = True
-    house_action.save()
-
+    
     my_board = PlayerBoardStatus.objects.get(player_id=player.id)
     reed = PlayerResource.objects.get(player_id=player.id, resource_id=3)
     #나무집 -> 흙집
-    if my_board.house_type == 1:
+    if my_board.house_type == 0:
         soil = PlayerResource.objects.get(player_id=player.id, resource_id=2)
         if reed.resource_num >= my_board.house_num and soil.resource_num >= my_board.house_num:
             reed.resource_num -= my_board.house_num
@@ -75,7 +74,7 @@ def house_upgrade(player):
         else:
             return Response({'detail': 'Not enough resources'}, status=404)
     #흑집 -> 돌집    
-    elif my_board.house_type == 2:
+    elif my_board.house_type == 1:
         stone = PlayerResource.objects.get(player_id=player.id, resource_id=4)
         if reed.resource_num >= my_board.house_num and stone.resource_num >= my_board.house_num:
             reed.resource_num -= my_board.house_num
@@ -86,6 +85,7 @@ def house_upgrade(player):
             return Response({'detail': 'Not enough resources'}, status=404)
     else:
         return Response({'detail': 'You can no longer upgrade'}, status=404)
+    house_action.save()
     reed.save()
     my_board.save()
 

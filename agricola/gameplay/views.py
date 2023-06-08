@@ -762,8 +762,8 @@ class FamilyPositionViewSet(ModelViewSet):
             #집개조
             elif action_id == 21:
                 response = house_upgrade(player)
-                player_card = PlayerCardViewSet()
-                player_card.activate_card({'player_id': player_id, 'card_id':card_id})
+                # player_card = PlayerCardViewSet()
+                # player_card.activate_card({'player_id': player_id, 'card_id':card_id})
             
             # 코드가 404면 -> 해당 행동이 거부됨 ->함수 종료
             if response.status_code == 404:
@@ -970,7 +970,7 @@ class PlayerCardViewSet(ModelViewSet):
     def activable_check(self, request):
         my_id = request.data.get('player_id')
         my_cardlist = PlayerCard.objects.filter(player_id = my_id, activate = 0)
-        activate_list = []
+        serialized_data = []
         for my_card in my_cardlist:
             flag = 1
             card_costs = ActivationCost.objects.filter(card_id = my_card.card_id)
@@ -980,11 +980,10 @@ class PlayerCardViewSet(ModelViewSet):
                     flag = 0
                     break
             if flag == 1:
-                activate_list.append(my_card)
-        public_cardlist = MainFacilityCard.objects.filter()
-        
-        return activate_list
+                serializer = PlayerCardSerializer(my_card)
+                serialized_data.append(serializer.data)
 
+        return Response(serialized_data)
 
     @action(detail=False, methods=['post'])
     def activate_card(self, request):
