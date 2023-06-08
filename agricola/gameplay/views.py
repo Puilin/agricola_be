@@ -228,7 +228,7 @@ class PlayerBoardStatusViewSet(ModelViewSet):
                 player.score += 2
 
         # 가족 말 : 1개 당 3점
-        total_fam_num = player.adult_num + player.baby_num + player.remain_num
+        total_fam_num = player.adult_num + player.baby_num
         player.score += (total_fam_num * 3)
 
         # 구걸 토큰 : 1개 당 -3점
@@ -975,6 +975,22 @@ class PlayerCardViewSet(ModelViewSet):
     @action(detail=False, methods=['get'])
     def activable_check(self, request):
         my_id = request.data.get('player_id')
+        my_cardlist = PlayerCard.objects.filter(player_id = my_id, activate = 0)
+        activate_list = []
+        for my_card in my_cardlist:
+            flag = 1
+            card_costs = ActivationCost.objects.filter(card_id = my_card.card_id)
+            for card_cost in card_costs:
+                my_resource = PlayerResource.objects.get(player_id = my_id, resource_id = card_cost.resource_id)
+                if my_resource.resource_num < card_cost.resource_num:
+                    flag = 0
+                    break
+            if flag == 1:
+                activate_list.append(my_card)
+        public_cardlist = MainFacilityCard.objects.filter()
+        
+        return activate_list
+
 
     @action(detail=False, methods=['post'])
     def activate_card(self, request):
@@ -997,4 +1013,3 @@ class PlayerCardViewSet(ModelViewSet):
 class PenPositionViewSet(ModelViewSet):
     queryset = PenPosition.objects.all()
     serializer_class = PenPositionSerializer
-
