@@ -346,7 +346,7 @@ class PlayerBoardStatusViewSet(ModelViewSet):
             }
         )
     )
-    @action(detail=False, methods=['put'])
+    @action(detail=False, methods=['PUT'])
     def raise_animal(self, request):
         player_id = request.data.get('player_id')
         animal_type = request.data.get('animal_type')
@@ -366,7 +366,10 @@ class PlayerBoardStatusViewSet(ModelViewSet):
             if (update_animal_type(board, position, animal_type)):
                 slot.animal_num += 1
                 slot.save()
-                return Response({'message':'succeess for raise_animal'})
+                pen = get_pen_by_postiion(board, position)
+                pen.current_num += 1
+                pen.save()
+                return Response({'message':'succeessfully added a(an) {} to {}'.format(animal_type, position)})
             else:
                 return Response({'error':'update_animal_type'}, status=500)
         else:
@@ -381,6 +384,12 @@ class PlayerBoardStatusViewSet(ModelViewSet):
             # 우리의 가축 종류와 요청한 가축 종류가 같지 않다면
             if animal_type != get_animal_type(board, position):
                 return Response({'error':'Only the same type of animal can be put here.'}, status=403)
+            slot.animal_num += 1
+            slot.save()
+            pen = get_pen_by_postiion(board, position)
+            pen.current_num += 1
+            pen.save()
+            return Response({'message':'succeessfully added a(an) {} to {}'.format(animal_type, position)})
 
 
 class BoardPositionViewSet(ModelViewSet):
@@ -461,7 +470,8 @@ class FencePositionViewSet(ModelViewSet):
         return position_id
 
     def get_board_with_playerid(self, player_id):
-        board_queryset = PlayerBoardStatus.objects.get(player_id = player_id)
+        player = Player.objects.get(id=player_id)
+        board_queryset = PlayerBoardStatus.objects.get(player_id = player)
         return board_queryset
 
     def get_fencepositions_with_boardid(self, board_id):
@@ -649,6 +659,83 @@ class JobCardViewSet(ModelViewSet):
 class MainFacilityCardViewSet(ModelViewSet):
     queryset = MainFacilityCard.objects.all()
     serializer_class = MainFacilityCardSerializer
+    
+    @swagger_auto_schema(
+        method='post',
+        request_body=openapi.Schema(
+            type=openapi.TYPE_OBJECT,
+            properties={
+                'player_id' : openapi.TYPE_INTEGER,
+                'facility_id' : openapi.TYPE_INTEGER,
+                'animal_type' : openapi.TYPE_INTEGER,
+                'position' : openapi.TYPE_INTEGER
+            }
+        )
+    )
+    @action(detail=False, methods=['post'])
+    def cook_animal(self, request):
+        player_id = request.data.get('player_id')
+        fac_id = request.data.get('facility_id')
+        animal_type = request.data.get('animal_type')
+        position = request.data.get('position')
+
+        player_obj = Player.objects.get(id=player_id)
+
+        if not does_have_cooking_facility(player_obj):
+            return Response({'error':'That player has no facilites to cook'}, status=403)
+
+        cards = PlayerCard.objects.filter(player_id=player_obj)
+        found = False
+        for card in cards:
+            if card.card_id.id == fac_id:
+                found = True
+                break
+
+        if not found:
+            return Response({'error':'That player doesn\'t have that facility'}, status=403)
+
+        
+        
+        if not does_have_animal(player_obj, animal_type):
+            return Response({'error':'That player seems to have no that type of animal'}, status=403)
+        
+        board = PlayerBoardStatus.objects.get(player_id=player_obj)
+        slot = BoardPosition.objects.filter(board_id=board).get(position=position)
+
+        # 해당 칸에 동물이 없거나 가축 종류가 다른 경우
+        if slot.animal_num == 0 or get_animal_type(board, position) != animal_type:
+            return Response({'error':'That position seems not to have that type of animal'}, status=403)
+
+        
+        resource = PlayerResource.objects.get(player_id=player_obj, resource_id=10)
+
+        # 화로
+        if fac_id in [29, 30]:
+            if animal_type in [1,2]: # 양, 돼지
+                resource.resource_num += 2
+            elif animal_type == 3: # 소
+                resource.resource_num += 2
+            resource.save()
+        # 화덕
+        elif fac_id in [31, 32]:
+            if animal_type == 1: # 양
+                resource.resource_num += 2
+            elif animal_type == 2:
+                resource.resource_num += 3
+            elif animal_type == 3: # 소
+                resource.resource_num += 4
+            resource.save()
+        # 칸에서 동물수 줄임
+        slot.animal_num -= 1
+        slot.save()
+        # 우리에도 반영
+        pen = get_pen_by_postiion(board, position)
+        pen.current_num -= 1
+        pen.save()
+        if pen.current_num == 0:
+            pen.animal_type = 0
+            pen.save()
+        return Response({'message':'Cooking Success'})
 
 
 class ActionBoxViewSet(ModelViewSet):
