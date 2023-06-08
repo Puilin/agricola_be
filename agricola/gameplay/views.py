@@ -228,7 +228,7 @@ class PlayerBoardStatusViewSet(ModelViewSet):
                 player.score += 2
 
         # 가족 말 : 1개 당 3점
-        total_fam_num = player.adult_num + player.baby_num + player.remain_num
+        total_fam_num = player.adult_num + player.baby_num
         player.score += (total_fam_num * 3)
 
         # 구걸 토큰 : 1개 당 -3점
