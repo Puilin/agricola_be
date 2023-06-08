@@ -44,3 +44,63 @@ def get_adjacent_farmlands(board_pos):
     for index in farmlands:
         lists += get_adjacent_slots(farmlands, index)
     return list(set(lists))
+
+# 가축을 키울수 있는 칸의 수를 받아오는 함수
+def count_pens(board_pos):
+    fence_only = board_pos.filter(position_type=3).count()
+    cowshed_only = board_pos.filter(position_type=4).count()
+    fence_and_cowshed = board_pos.filter(position_type=5).count()
+
+    return fence_only + cowshed_only + fence_and_cowshed
+
+def does_have_cooking_facility(player):
+    deck = PlayerCard.objects.filter(player_id=player)
+    activated_card_ids = deck.filter(activate=1).values_list('card_id', flat=True)
+    for id in activated_card_ids:
+        #화로1, 화로2, 화덕1, 화덕2
+        if id in [29, 30, 31, 32]:
+            return True
+    return False
+
+# 칸 번호로 가축 종류 받아오는 함수
+def get_animal_type(board, position):
+    pens_array = PenPosition.objects.filter(board_id=board).values_list('position_list') # 요청받은 번호에 해당하는 우리
+    for list_str in pens_array:
+        if position in eval(list_str[0]):
+            return PenPosition.objects.filter(board_id=board).get(position_list=list_str[0]).animal_type
+    return -1
+
+def update_animal_type(board, position, animal_type):
+    pens_array = PenPosition.objects.filter(board_id=board).values_list('position_list') # 요청받은 번호에 해당하는 우리
+    for list_str in pens_array:
+        if position in eval(list_str[0]):
+            penpos = PenPosition.objects.filter(board_id=board)
+            pen = penpos.get(position_list=list_str[0])
+            pen.animal_type = animal_type
+            pen.save()
+            return True
+    return False
+
+# 가축 종류로 우리(pen) queryset을 받아오는 함수
+def get_pens(board, animal_type):
+    pens = PenPosition.objects.filter(board_id=board)
+    animal_pens = pens.filter(animal_type=animal_type)
+    return animal_pens
+
+# 칸 번호로 그 칸이 속한 우리 객체를 받아오는 함수
+def get_pen_by_postiion(board, position):
+    pens = PenPosition.objects.filter(board_id=board)
+    pens_array = pens.values_list('position_list') # 요청받은 번호에 해당하는 우리
+    for list_str in pens_array:
+        if position in eval(list_str[0]):
+            return pens.get(position_list=list_str[0])
+    return None
+
+# 플레이어가 특정 가축을 소유하고 있는지 체크하는 함수
+def does_have_animal(player, animal_type):
+    board = PlayerBoardStatus.objects.get(player_id=player)
+    pens = PenPosition.objects.filter(board_id=board)
+    animal_pens = pens.filter(animal_type=animal_type)
+    if not animal_pens:
+        return False
+    return True
