@@ -86,6 +86,10 @@ class AccountViewSet(ModelViewSet):
             else:
                 pr.resource_num = 0
             pr.save()
+        playercards = PlayerCard.objects.all()
+        for playercard in playercards:
+            playercard.activate = 0
+            playercard.save()
         return Response(status=200)
 
 class PlayerViewSet(ModelViewSet):
