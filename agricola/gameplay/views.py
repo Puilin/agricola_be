@@ -363,6 +363,8 @@ class PlayerBoardStatusViewSet(ModelViewSet):
         board = self.queryset.get(player_id=player)
         slot = BoardPosition.objects.filter(board_id=board).get(position=position) # 칸번호로 포지션 받아오기
 
+        resouce = PlayerResource.objects.filter(player_id=player).get(resource_id=animal_type+6)
+
         position_type = slot.position_type
         # 우리가 아님
         if position_type in [0,1,2]:
@@ -370,15 +372,19 @@ class PlayerBoardStatusViewSet(ModelViewSet):
         
         # 해당 칸에 동물이 아무도 없으면
         if slot.animal_num == 0:
-            if (update_animal_type(board, position, animal_type)):
-                slot.animal_num += 1
-                slot.save()
-                pen = get_pen_by_postiion(board, position)
-                pen.current_num += 1
-                pen.save()
-                return Response({'message':'succeessfully added a(an) {} to {}'.format(animal_type, position)})
-            else:
-                return Response({'error':'update_animal_type'}, status=500)
+            if (get_animal_type(board, position) == 0):
+                if (update_animal_type(board, position, animal_type)):
+                    pass
+                else:
+                    return Response({'error':'update_animal_type'}, status=500)
+            slot.animal_num += 1
+            slot.save()
+            pen = get_pen_by_postiion(board, position)
+            pen.current_num += 1
+            pen.save()
+            resouce.resource_num -= 1
+            resouce.save()
+            return Response({'message':'succeessfully added a(an) {} to {}'.format(animal_type, position)})
         else:
             if position_type == 3: # 울타리 -> 최대 2마리
                 max_num = 2
@@ -396,6 +402,8 @@ class PlayerBoardStatusViewSet(ModelViewSet):
             pen = get_pen_by_postiion(board, position)
             pen.current_num += 1
             pen.save()
+            resouce.resource_num -= 1
+            resouce.save()
             return Response({'message':'succeessfully added a(an) {} to {}'.format(animal_type, position)})
 
 
@@ -436,6 +444,103 @@ class BoardPositionViewSet(ModelViewSet):
         position.save()
         serializer = self.serializer_class(position)
         return Response(serializer.data)
+    
+    @swagger_auto_schema(
+        method='put',
+        request_body=openapi.Schema(
+            type=openapi.TYPE_OBJECT,
+            properties={
+                'player_id': openapi.Schema(type=openapi.TYPE_INTEGER),
+                'position': openapi.Schema(type=openapi.TYPE_INTEGER)
+            }
+        )
+    )
+    @action(detail=False, methods=['PUT'])
+    def construct_room(self, request):
+        player_id = request.data.get('player_id')
+        position = request.data.get('position')
+
+        player = Player.objects.get(id=player_id)
+        board = PlayerBoardStatus.objects.get(player_id=player)
+        board_pos = BoardPosition.objects.filter(board_id=board)
+        slot = board_pos.get(position=position)
+
+        resource = PlayerResource.objects.filter(player_id=player)
+
+        tree = resource.get(resource_id=1)
+        reed = resource.get(resource_id=3)
+        soil = resource.get(resource_id=2)
+        stone = resource.get(resource_id=4)
+
+        if slot.position_type != 0:
+            return Response({'error': 'That position is not an empty land'})
+        
+
+        reed.resource_num -= 2
+        reed.save()
+        
+        if board.house_type == 0:
+            tree.resource_num -= 5
+            tree.save()
+        elif board.house_type == 1:
+            soil.resource_num -= 5
+            soil.save()
+        elif board.house_type == 2:
+            stone.resource_num -= 5
+            stone.save()
+
+        slot.position_type = 1
+        slot.save()
+        board.house_num += 1
+        board.save()
+        serializer = self.serializer_class(slot)
+        return Response({'message':'contruct_room success', 'result':serializer.data})
+
+    @swagger_auto_schema(
+        method='put',
+        request_body=openapi.Schema(
+            type=openapi.TYPE_OBJECT,
+            properties={
+                'player_id': openapi.Schema(type=openapi.TYPE_INTEGER),
+                'position': openapi.Schema(type=openapi.TYPE_INTEGER)
+            }
+        )
+    )
+    @action(detail=False, methods=['PUT'])
+    def construct_cowshed(self, request):
+        player_id = request.data.get('player_id')
+        position = request.data.get('position')
+
+        player = Player.objects.get(id=player_id)
+        board = PlayerBoardStatus.objects.get(player_id=player)
+        board_pos = BoardPosition.objects.filter(board_id=board)
+        slot = board_pos.get(position=position)
+
+        resource = PlayerResource.objects.filter(player_id=player)
+
+        tree = resource.get(resource_id=1)
+
+        if slot.position_type == 1:
+            return Response({'error': 'That position is a room'}, status=403)
+        if slot.position_type in [4,5]:
+            return Response({'error': 'Thatt position already has a cowshed'}, status=403)
+        
+        # 충분한 자원이 있는지
+        if tree.resource_num < 2:
+            return Response({'error': 'That player seems not to have enough trees'})
+
+        tree.resource_num -= 2
+        tree.save()
+
+        if slot.position_type == 0:
+            slot.position_type = 4
+        elif slot.position_type == 3:
+            slot.position_type = 5
+        slot.save()
+        board.cowshed_num += 1
+        board.save()
+        serializer = self.serializer_class(slot)
+        return Response({'message':'contruct_cowshed success', 'result':serializer.data})
 
     @swagger_auto_schema(
         method='post',
@@ -466,6 +571,28 @@ class BoardPositionViewSet(ModelViewSet):
         serializer = self.serializer_class(board_position_arr, many=True)
         return Response({"house_type": house_type,"animal_type": animal_type, "position_arr": serializer.data})
 
+    @swagger_auto_schema(
+        method='get',
+        manual_parameters=[
+            openapi.Parameter('player_id', openapi.IN_QUERY, description='Player ID', type=openapi.TYPE_INTEGER),
+            openapi.Parameter('type', openapi.IN_QUERY, description='room or cowshed', type=openapi.TYPE_STRING),
+        ]
+    )
+    @action(detail=False, methods=['GET'])
+    def get_available_slots(self, request):
+        player_id = request.query_params.get('player_id')
+        type = request.query_params.get('type')
+
+        player = Player.objects.get(id=player_id)
+        board = PlayerBoardStatus.objects.get(player_id=player)
+        board_pos = BoardPosition.objects.filter(board_id=board)
+
+        if type == 'room':
+            available_rooms = get_adjacent_rooms(board_pos)
+            return Response({'available': available_rooms})
+        if type == 'cowshed':
+            available_cowshed = get_available_cowshed(board_pos)
+            return Response({'available': available_cowshed})
 
 class FencePositionViewSet(ModelViewSet):
     queryset = FencePosition.objects.all()
@@ -725,7 +852,31 @@ class MainFacilityCardViewSet(ModelViewSet):
         if not found:
             return Response({'error':'That player doesn\'t have that facility'}, status=403)
 
-        
+
+        food = PlayerResource.objects.get(player_id=player_obj, resource_id=10)
+        animal = PlayerResource.objects.get(player_id=player_obj, resource_id=animal_type+6)
+        if position == 0 and animal.resource_num > 0:
+            animal.resource_num -= 1
+            animal.save()
+            # 화로
+            if fac_id in [29, 30]:
+                if animal_type in [1,2]: # 양, 돼지
+                    food.resource_num += 2
+                elif animal_type == 3: # 소
+                    food.resource_num += 2
+                food.save()
+            # 화덕
+            elif fac_id in [31, 32]:
+                if animal_type == 1: # 양
+                    food.resource_num += 2
+                elif animal_type == 2:
+                    food.resource_num += 3
+                elif animal_type == 3: # 소
+                    food.resource_num += 4
+                food.save()
+            return Response({'message':'Cooking Success'})
+        elif position == 0:
+            return Response({'error':'That player seems to have no that type of animal'}, status=403)
         
         if not does_have_animal(player_obj, animal_type):
             return Response({'error':'That player seems to have no that type of animal'}, status=403)
@@ -738,24 +889,23 @@ class MainFacilityCardViewSet(ModelViewSet):
             return Response({'error':'That position seems not to have that type of animal'}, status=403)
 
         
-        resource = PlayerResource.objects.get(player_id=player_obj, resource_id=10)
 
         # 화로
         if fac_id in [29, 30]:
             if animal_type in [1,2]: # 양, 돼지
-                resource.resource_num += 2
+                food.resource_num += 2
             elif animal_type == 3: # 소
-                resource.resource_num += 2
-            resource.save()
+                food.resource_num += 2
+            food.save()
         # 화덕
         elif fac_id in [31, 32]:
             if animal_type == 1: # 양
-                resource.resource_num += 2
+                food.resource_num += 2
             elif animal_type == 2:
-                resource.resource_num += 3
+                food.resource_num += 3
             elif animal_type == 3: # 소
-                resource.resource_num += 4
-            resource.save()
+                food.resource_num += 4
+            food.save()
         # 칸에서 동물수 줄임
         slot.animal_num -= 1
         slot.save()
@@ -925,6 +1075,13 @@ class FamilyPositionViewSet(ModelViewSet):
             elif action_id == 2:
                 # perform_action_2()
                 pass
+            # 농장 확장
+            elif action_id == 8:
+                response = farm_extension(player)
+                if response.status_code != 404:
+                    act = ActionBox.objects.get(id=8)
+                    act.is_occupied = True
+                    act.save()
             #곡식종자
             elif action_id == 10:
                 response = grain_seed(player)
