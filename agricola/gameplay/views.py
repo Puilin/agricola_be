@@ -90,6 +90,13 @@ class AccountViewSet(ModelViewSet):
         for playercard in playercards:
             playercard.activate = 0
             playercard.save()
+        actionboxs = ActionBox.objects.all()
+        for actionbox in actionboxs:
+            actionbox.is_occupied = False
+            actionbox.save()
+        FamilyPosition.objects.all().delete()
+        player_viewset = PlayerViewSet()
+        player_viewset.choose_first_player(request)
         return Response(status=200)
 
 class PlayerViewSet(ModelViewSet):
@@ -908,10 +915,14 @@ class FamilyPositionViewSet(ModelViewSet):
                 response = sheep_market(player)
             #집개조
             elif action_id == 21:
-                response = house_upgrade(player)
-                # player_card = PlayerCardViewSet()
-                # player_card.activate_card({'player_id': player_id, 'card_id':card_id})
-            
+                player_card = PlayerCardViewSet()
+                result = player_card.activable_check(request=type('DummyRequest', (object,), {'data': {'player_id': player_id}})())
+                if result:
+                    response = house_upgrade(player)
+                    player_card.activate_card(request=type('DummyRequest', (object,), {'data': {'player_id': player_id, 'card_id': card_id}})())
+                else:
+                    return Response({'error': 'You can\'t activate some card'}, status=status.HTTP_403_FORBIDDEN)
+
             # 코드가 404면 -> 해당 행동이 거부됨 ->함수 종료
             if response.status_code == 404:
                 return response
@@ -1113,6 +1124,29 @@ class PlayerCardViewSet(ModelViewSet):
     queryset = PlayerCard.objects.all()
     serializer_class = PlayerCardSerializer
 
+    @swagger_auto_schema(
+        method='get',
+        manual_parameters=[
+            openapi.Parameter('player_id', openapi.IN_QUERY, description='Player ID', type=openapi.TYPE_INTEGER),
+        ]
+    )
+    @action(detail=False, methods=['get'])
+    def get_activate_card(self, request):
+        my_id = request.query_params.get('player_id')
+        activate_cards = PlayerCard.objects.filter(player_id = my_id, activate = 1)
+        serialized_data = []
+        for activate_card in activate_cards:
+            serializer = PlayerCardSerializer(activate_card)
+            serialized_data.append(serializer.data)
+        
+        return Response(serialized_data)
+
+    # @swagger_auto_schema(
+    #     method='get',
+    #     manual_parameters=[
+    #         openapi.Parameter('player_id', openapi.IN_QUERY, description='Player ID', type=openapi.TYPE_INTEGER),
+    #     ]
+    # )
     @action(detail=False, methods=['get'])
     def activable_check(self, request):
         my_id = request.data.get('player_id')
@@ -1128,6 +1162,18 @@ class PlayerCardViewSet(ModelViewSet):
                     break
             if flag == 1:
                 serializer = PlayerCardSerializer(my_card)
+                serialized_data.append(serializer.data)
+        main_cardlist = MainFacilityCard.objects.filter(player_id = 0)
+        for main_card in main_cardlist:
+            flag = 1
+            card_costs = ActivationCost.objects.filter(card_id = main_card.card_id)
+            for card_cost in card_costs:
+                my_resource = PlayerResource.objects.get(player_id = my_id, resource_id = card_cost.resource_id)
+                if my_resource.resource_num < card_cost.resource_num:
+                    flag = 0
+                    break
+            if flag == 1:
+                serializer = MainFacilityCardSerializer(main_card)
                 serialized_data.append(serializer.data)
 
         return Response(serialized_data)

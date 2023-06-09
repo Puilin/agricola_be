@@ -69,7 +69,7 @@ def house_upgrade(player):
         if reed.resource_num >= my_board.house_num and soil.resource_num >= my_board.house_num:
             reed.resource_num -= my_board.house_num
             soil.resource_num -= my_board.house_num
-            my_board.house_type = 2
+            my_board.house_type = 1
             soil.save()
         else:
             return Response({'detail': 'Not enough resources'}, status=404)
@@ -79,7 +79,7 @@ def house_upgrade(player):
         if reed.resource_num >= my_board.house_num and stone.resource_num >= my_board.house_num:
             reed.resource_num -= my_board.house_num
             stone.resource_num -= my_board.house_num
-            my_board.house_type = 3
+            my_board.house_type = 2
             stone.save()
         else:
             return Response({'detail': 'Not enough resources'}, status=404)

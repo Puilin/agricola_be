@@ -82,6 +82,7 @@ class JobCard(models.Model):
 class MainFacilityCard(models.Model):
     card_id = models.ForeignKey('Card', on_delete=models.CASCADE)
     type = models.CharField(max_length=50)
+    player_id = models.IntegerField(default=0)
 
 class ActionBox(models.Model):
     card_id = models.ForeignKey('PeriodCard', null=True, on_delete=models.CASCADE)
