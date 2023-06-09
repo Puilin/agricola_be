@@ -12,7 +12,7 @@ def count_farmlands(board_pos):
     return count
 
 # 건설 유효성 체크
-def is_valid_slot(lands, index, dir, type):
+def is_valid_slot(lands, index, dir):
     if index in [1,2]:
         return False
     elif index % 3 == 0 and dir == -1:
@@ -29,15 +29,30 @@ def is_valid_slot(lands, index, dir, type):
         return True
 
 # 상 좌 우 하 순서로 유효한지 검사후 유효한 칸 번호 반환
-def get_adjacent_slots(lands, index, type):
+def get_adjacent_slots(lands, index):
     dircetions = [-3, -1, 1, 3]
     result = []
     for dir in dircetions:
-        if not is_valid_slot(lands, index + dir, dir, type):
+        if not is_valid_slot(lands, index + dir, dir):
             continue
         result.append(index+dir)
     return result
 
+# get_adjacent_slots 상위 호환. 인접하면서 빈땅이어야 함 (방을 늘리기 위해)
+def check_adjacent_rooms(board_pos, lands, index):
+    dircetions = [-3, -1, 1, 3]
+    result = []
+    for dir in dircetions:
+        try:
+            pos_type = board_pos.get(position=index+dir).position_type
+            if pos_type != 0:
+                continue
+        except:
+            pass
+        if not is_valid_slot(lands, index + dir, dir):
+            continue
+        result.append(index+dir)
+    return result
 
 # 밭이 하나 이상일 경우 설치가능한 (인접한) 밭의 번호 받아오는 함수
 def get_adjacent_farmlands(board_pos):
@@ -52,7 +67,7 @@ def get_adjacent_rooms(board_pos):
     rooms = board_pos.filter(position_type=1).values_list('position', flat=True) # 방 번호 리스트
     lists = []
     for index in rooms:
-        lists += get_adjacent_slots(rooms, index, 1)
+        lists += check_adjacent_rooms(board_pos, rooms, index)
     return list(set(lists))
 
 # 가축을 키울수 있는 칸의 수를 받아오는 함수
@@ -65,8 +80,8 @@ def count_pens(board_pos):
 
 def does_have_cooking_facility(player):
     deck = PlayerCard.objects.filter(player_id=player)
-    activated_card_ids = deck.filter(activate=1).values_list('card_id', flat=True)
-    for id in activated_card_ids:
+    card_ids = deck.values_list('card_id', flat=True)
+    for id in card_ids:
         #화로1, 화로2, 화덕1, 화덕2
         if id in [29, 30, 31, 32]:
             return True

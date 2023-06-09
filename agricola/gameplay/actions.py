@@ -5,17 +5,17 @@ from .utils import *
 
 def forest(player):
     forest_action = ActionBox.objects.get(id=11)
-    my_resource = PlayerResource.objects.get(player_id=player.id, resource_id=1)
+    my_resource = PlayerResource.objects.filter(player_id=player).get(resource_id=1)
     # 숲에 누군가 있으면
     if forest_action.is_occupied:
         return Response({'detail': 'There\'s someone else in forest.'}, status=404)
     if forest_action.acc_resource > 0:
         # 숲에 이제 사람이 있음
         forest_action.is_occupied = True
+        # 플레이어의 자원에 추가
+        my_resource.resource_num = my_resource.resource_num + forest_action.acc_resource
         # 숲에서 나무를 몽땅 없앰
         forest_action.acc_resource -= forest_action.acc_resource
-        # 플레이어의 자원에 추가
-        my_resource.resource_num += forest_action.acc_resource
 
         # db에 저장
         forest_action.save()
@@ -122,6 +122,7 @@ def sheep_market(player):
 
     board = PlayerBoardStatus.objects.get(player_id=player)
     board_pos = BoardPosition.objects.filter(board_id=board) # queryset
+    sheep = PlayerResource.objects.filter(player_id=player).get(resource_id=7)
 
     # 양시장 이용 조건 체크
     cond1, cond2 = True, True
@@ -134,10 +135,22 @@ def sheep_market(player):
         cond2 = False
 
     if cond1 and cond2:
+        sheep.resource_num += sheep_market_action.acc_resource
+        sheep.save()
+        sheep_market_action.acc_resource -= sheep_market_action.acc_resource
+        sheep_market_action.save()
         return Response({"case":1, "massege": "You can raise them(it) or cook them (it)"},status=200)
     elif cond1:
+        sheep.resource_num += sheep_market_action.acc_resource
+        sheep.save()
+        sheep_market_action.acc_resource -= sheep_market_action.acc_resource
+        sheep_market_action.save()
         return Response({"case":2, "massege": "You can raise them(it)"},status=200)
     elif cond2:
+        sheep.resource_num += sheep_market_action.acc_resource
+        sheep.save()
+        sheep_market_action.acc_resource -= sheep_market_action.acc_resource
+        sheep_market_action.save()
         return Response({"case":3, "massege": "You can cook them(it)"},status=200)
     else:
         sheep_market_action.is_occupied = False
@@ -179,3 +192,4 @@ def farm_extension(player):
         return Response({"code": 1, "message": "That player can build only cowshed"})
     if can_build_room:
         return Response({"code": 2, "message": "That player can build only room"})
+    return Response({'code':-1, "message": "That player doesn't seem to have enough resources"}, status=404)
