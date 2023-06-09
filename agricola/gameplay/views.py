@@ -642,7 +642,7 @@ class JobCardViewSet(ModelViewSet):
     queryset = JobCard.objects.all()
     serializer_class = JobCardSerializer
 
-    @action(detail=False, methods=['get'])
+    @action(detail=False, methods=['post'])
     def get_random_jobcards(self, request):
         jobcards = list(JobCard.objects.all())
         shuffle(jobcards)  # 리스트를 랜덤하게 섞습니다.
