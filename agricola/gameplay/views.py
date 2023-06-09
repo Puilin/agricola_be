@@ -939,6 +939,7 @@ class FamilyPositionViewSet(ModelViewSet):
                 response = sheep_market(player)
             #집개조
             elif action_id == 21:
+<<<<<<< Updated upstream
                 player_card = PlayerCardViewSet()
                 result = player_card.activable_check(request=type('DummyRequest', (object,), {'data': {'player_id': player_id}})())
                 if result:
@@ -947,6 +948,15 @@ class FamilyPositionViewSet(ModelViewSet):
                 else:
                     return Response({'error': 'You can\'t activate some card'}, status=status.HTTP_403_FORBIDDEN)
 
+=======
+                response = house_upgrade(player)
+                # player_card = PlayerCardViewSet()
+                # player_card.activate_card({'player_id': player_id, 'card_id':card_id})
+            # 기본 가족 늘리기
+            elif action_id == 23:
+                response = add_fam(player)
+            
+>>>>>>> Stashed changes
             # 코드가 404면 -> 해당 행동이 거부됨 ->함수 종료
             if response.status_code == 404:
                 return response
