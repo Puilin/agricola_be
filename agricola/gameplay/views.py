@@ -466,6 +466,28 @@ class BoardPositionViewSet(ModelViewSet):
         serializer = self.serializer_class(board_position_arr, many=True)
         return Response({"house_type": house_type,"animal_type": animal_type, "position_arr": serializer.data})
 
+    @swagger_auto_schema(
+        method='get',
+        manual_parameters=[
+            openapi.Parameter('player_id', openapi.IN_QUERY, description='Player ID', type=openapi.TYPE_INTEGER),
+            openapi.Parameter('type', openapi.IN_QUERY, description='room or cowshed', type=openapi.TYPE_STRING),
+        ]
+    )
+    @action(detail=False, methods=['GET'])
+    def get_available_slots(self, request):
+        player_id = request.query_params.get('player_id')
+        type = request.query_params.get('type')
+
+        player = Player.objects.get(id=player_id)
+        board = PlayerBoardStatus.objects.get(player_id=player)
+        board_pos = BoardPosition.objects.filter(board_id=board)
+
+        if type == 'room':
+            available_rooms = get_adjacent_rooms(board_pos)
+            return Response({'available': available_rooms})
+        if type == 'cowshed':
+            available_cowshed = get_available_cowshed(board_pos)
+            return Response({'available': available_cowshed})
 
 class FencePositionViewSet(ModelViewSet):
     queryset = FencePosition.objects.all()
@@ -925,6 +947,8 @@ class FamilyPositionViewSet(ModelViewSet):
             elif action_id == 2:
                 # perform_action_2()
                 pass
+            elif action_id == 8:
+                response = farm_extension(player)
             #곡식종자
             elif action_id == 10:
                 response = grain_seed(player)

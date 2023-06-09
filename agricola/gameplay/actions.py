@@ -143,4 +143,39 @@ def sheep_market(player):
         sheep_market_action.is_occupied = False
         sheep_market_action.save()
         return Response({"case":0, "error": "You don't have neither pens nor main facilities for cooking"}, status=404)
+
+def farm_extension(player):
+    farm_ex_action = ActionBox.objects.get(id=8)
+    if farm_ex_action.is_occupied:
+        return Response({'detail': 'There\'s someone else in farm extension'}, status=404)
     
+    resource = PlayerResource.objects.filter(player_id=player)
+
+    tree = resource.get(resource_id=1)
+    reed = resource.get(resource_id=3)
+    soil = resource.get(resource_id=2)
+    stone = resource.get(resource_id=4)
+
+    board = PlayerBoardStatus.objects.get(player_id=player)
+
+    can_build_cowshed = False
+    if tree.resource_num >= 2:
+        can_build_cowshed = True
+
+    can_build_room = False
+    # 나무집
+    if (board.house_type == 0 and tree.resource_num >= 5 and reed.resource_num >= 2):
+        can_build_room = True
+    # 흙집
+    if (board.house_type == 1 and soil.resource_num >= 5 and reed.resource_num >= 2):
+        can_build_room = True
+    # 돌집
+    if (board.house_type == 2 and stone.resource_num >= 5 and reed.resource_num >= 2):
+        can_build_room = True
+
+    if can_build_cowshed and can_build_room:
+        return Response({"code": 0, "message": "That player can build either cowshed or room"})
+    if can_build_cowshed:
+        return Response({"code": 1, "message": "That player can build only cowshed"})
+    if can_build_room:
+        return Response({"code": 2, "message": "That player can build only room"})
