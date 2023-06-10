@@ -1096,6 +1096,8 @@ class FamilyPositionViewSet(ModelViewSet):
         # Check whose turn it is based on the turn counter
         is_first_player_turn = turn_counter % 2 == 1
 
+        response = None
+
         # Check if it's the player's turn
         # 상대방의 가족 구성원이 없거나, 자신의 차례일 경우
         if another_player.remain_num == 0 or (is_first_player_turn and player.fst_player) or (
