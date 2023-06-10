@@ -71,7 +71,7 @@ def house_upgrade(player):
         if reed.resource_num >= my_board.house_num and soil.resource_num >= my_board.house_num:
             reed.resource_num -= my_board.house_num
             soil.resource_num -= my_board.house_num
-            my_board.house_type = 2
+            my_board.house_type = 1
             soil.save()
         else:
             return Response({'detail': 'Not enough resources'}, status=404)
@@ -81,7 +81,7 @@ def house_upgrade(player):
         if reed.resource_num >= my_board.house_num and stone.resource_num >= my_board.house_num:
             reed.resource_num -= my_board.house_num
             stone.resource_num -= my_board.house_num
-            my_board.house_type = 3
+            my_board.house_type = 2
             stone.save()
         else:
             return Response({'detail': 'Not enough resources'}, status=404)
@@ -125,7 +125,7 @@ def sheep_market(player):
     sheep_market_action.save()
 
     board = PlayerBoardStatus.objects.get(player_id=player)
-    board_pos = BoardPosition.objects.filter(board_id=board) # queryset
+    board_pos = BoardPosition.objects.filter(board_id=board)  # queryset
     sheep = PlayerResource.objects.filter(player_id=player).get(resource_id=7)
 
     # 양시장 이용 조건 체크
@@ -143,23 +143,24 @@ def sheep_market(player):
         sheep.save()
         sheep_market_action.acc_resource -= sheep_market_action.acc_resource
         sheep_market_action.save()
-        return Response({"case":1, "massege": "You can raise them(it) or cook them (it)"},status=200)
+        return Response({"case": 1, "massege": "You can raise them(it) or cook them (it)"}, status=200)
     elif cond1:
         sheep.resource_num += sheep_market_action.acc_resource
         sheep.save()
         sheep_market_action.acc_resource -= sheep_market_action.acc_resource
         sheep_market_action.save()
-        return Response({"case":2, "massege": "You can raise them(it)"},status=200)
+        return Response({"case": 2, "massege": "You can raise them(it)"}, status=200)
     elif cond2:
         sheep.resource_num += sheep_market_action.acc_resource
         sheep.save()
         sheep_market_action.acc_resource -= sheep_market_action.acc_resource
         sheep_market_action.save()
-        return Response({"case":3, "massege": "You can cook them(it)"},status=200)
+        return Response({"case": 3, "massege": "You can cook them(it)"}, status=200)
     else:
         sheep_market_action.is_occupied = False
         sheep_market_action.save()
-        return Response({"case":0, "error": "You don't have neither pens nor main facilities for cooking"}, status=404)
+        return Response({"case": 0, "error": "You don't have neither pens nor main facilities for cooking"}, status=404)
+
 
 def farm_extension(player):
     farm_ex_action = ActionBox.objects.get(id=8)
@@ -196,7 +197,8 @@ def farm_extension(player):
         return Response({"code": 1, "message": "That player can build only cowshed"})
     if can_build_room:
         return Response({"code": 2, "message": "That player can build only room"})
-    return Response({'code':-1, "message": "That player doesn't seem to have enough resources"}, status=404)
+    return Response({'code': -1, "message": "That player doesn't seem to have enough resources"}, status=404)
+
 
 def meeting_place(player):
     meeting_place_act = ActionBox.objects.get(id=9)

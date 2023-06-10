@@ -92,6 +92,7 @@ class AccountViewSet(ModelViewSet):
             playercard.activate = 0
             playercard.save()
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
         actionboxs = ActionBox.objects.all()
         for actionbox in actionboxs:
@@ -103,6 +104,8 @@ class AccountViewSet(ModelViewSet):
         player_viewset = PlayerViewSet()
         player_viewset.choose_first_player(request)
 >>>>>>> a3f47d0f7fe30bf4600bb962d5325aab369705d2
+=======
+>>>>>>> 912a9f1bde2b65a14fade96ce9e227f264b459f6
         return Response(status=200)
 
 
@@ -370,8 +373,11 @@ class PlayerBoardStatusViewSet(ModelViewSet):
         player = Player.objects.get(id=player_id)
         board = self.queryset.get(player_id=player)
         slot = BoardPosition.objects.filter(board_id=board).get(position=position)  # 칸번호로 포지션 받아오기
+<<<<<<< HEAD
 
         resouce = PlayerResource.objects.filter(player_id=player).get(resource_id=animal_type+6)
+=======
+>>>>>>> 912a9f1bde2b65a14fade96ce9e227f264b459f6
 
         position_type = slot.position_type
         # 우리가 아님
@@ -390,17 +396,33 @@ class PlayerBoardStatusViewSet(ModelViewSet):
                 return Response({'message': 'succeessfully added a(an) {} to {}'.format(animal_type, position)})
             else:
                 return Response({'error': 'update_animal_type'}, status=500)
+<<<<<<< HEAD
 =======
             if (get_animal_type(board, position) == 0):
                 if (update_animal_type(board, position, animal_type)):
                     pass
                 else:
                     return Response({'error':'update_animal_type'}, status=500)
+=======
+        else:
+            if position_type == 3:  # 울타리 -> 최대 2마리
+                max_num = 2
+            elif position_type == 4:  # 외양간 -> 최대 1마리
+                max_num = 1
+            elif position_type == 5:  # 울타리외양간 -> 최대 4마리
+                max_num = 4
+            if slot.animal_num == max_num:
+                return Response({'error': 'That slot has maximum number of animals.'}, status=403)
+            # 우리의 가축 종류와 요청한 가축 종류가 같지 않다면
+            if animal_type != get_animal_type(board, position):
+                return Response({'error': 'Only the same type of animal can be put here.'}, status=403)
+>>>>>>> 912a9f1bde2b65a14fade96ce9e227f264b459f6
             slot.animal_num += 1
             slot.save()
             pen = get_pen_by_postiion(board, position)
             pen.current_num += 1
             pen.save()
+<<<<<<< HEAD
             resouce.resource_num -= 1
             resouce.save()
             return Response({'message':'succeessfully added a(an) {} to {}'.format(animal_type, position)})
@@ -429,6 +451,9 @@ class PlayerBoardStatusViewSet(ModelViewSet):
             resouce.save()
             return Response({'message':'succeessfully added a(an) {} to {}'.format(animal_type, position)})
 >>>>>>> a3f47d0f7fe30bf4600bb962d5325aab369705d2
+=======
+            return Response({'message': 'succeessfully added a(an) {} to {}'.format(animal_type, position)})
+>>>>>>> 912a9f1bde2b65a14fade96ce9e227f264b459f6
 
 
 class BoardPositionViewSet(ModelViewSet):
@@ -867,6 +892,7 @@ class MainFacilityCardViewSet(ModelViewSet):
             return Response({'error': 'That player doesn\'t have that facility'}, status=403)
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 
         food = PlayerResource.objects.get(player_id=player_obj, resource_id=10)
@@ -895,6 +921,8 @@ class MainFacilityCardViewSet(ModelViewSet):
             return Response({'error':'That player seems to have no that type of animal'}, status=403)
         
 >>>>>>> a3f47d0f7fe30bf4600bb962d5325aab369705d2
+=======
+>>>>>>> 912a9f1bde2b65a14fade96ce9e227f264b459f6
         if not does_have_animal(player_obj, animal_type):
             return Response({'error': 'That player seems to have no that type of animal'}, status=403)
 
@@ -906,6 +934,9 @@ class MainFacilityCardViewSet(ModelViewSet):
             return Response({'error': 'That position seems not to have that type of animal'}, status=403)
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 912a9f1bde2b65a14fade96ce9e227f264b459f6
         resource = PlayerResource.objects.get(player_id=player_obj, resource_id=10)
 
         # 화로
@@ -1119,6 +1150,7 @@ class FamilyPositionViewSet(ModelViewSet):
                 # perform_action_2()
                 pass
 <<<<<<< HEAD
+<<<<<<< HEAD
             # 곡식종자
 =======
             # 농장 확장
@@ -1133,6 +1165,9 @@ class FamilyPositionViewSet(ModelViewSet):
                 response = meeting_place(player)
             #곡식종자
 >>>>>>> a3f47d0f7fe30bf4600bb962d5325aab369705d2
+=======
+            # 곡식종자
+>>>>>>> 912a9f1bde2b65a14fade96ce9e227f264b459f6
             elif action_id == 10:
                 response = grain_seed(player)
             # 숲
@@ -1385,6 +1420,7 @@ class PlayerCardViewSet(ModelViewSet):
         player = Player.objects.get(id=my_id)
         choice_card = request.data.get('card_id')
 <<<<<<< HEAD
+<<<<<<< HEAD
         active_card = PlayerCard.objects.get(card_id=choice_card)
         active_costs = ActivationCost.objects.filter(card_id=choice_card)
 =======
@@ -1392,6 +1428,10 @@ class PlayerCardViewSet(ModelViewSet):
         #활성화 가능 여부 check
         active_costs = ActivationCost.objects.filter(card_id = choice_card)
 >>>>>>> a3f47d0f7fe30bf4600bb962d5325aab369705d2
+=======
+        active_card = PlayerCard.objects.get(card_id=choice_card)
+        active_costs = ActivationCost.objects.filter(card_id=choice_card)
+>>>>>>> 912a9f1bde2b65a14fade96ce9e227f264b459f6
         for active_cost in active_costs:
             my_resource = PlayerResource.objects.get(player_id=my_id, resource_id=active_cost.resource_id)
             if my_resource.resource_num < active_cost.resource_num:
@@ -1421,6 +1461,7 @@ class PlayerCardViewSet(ModelViewSet):
             active_card.activate = 1
             active_card.save()
             return Response({'message': 'Activate Success'})
+
 
 
 class PenPositionViewSet(ModelViewSet):
