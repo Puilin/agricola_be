@@ -236,8 +236,8 @@ def add_fam(player, card):
 
     # 3. 한 후에 보조설비 하나 내기(활성화하기)
     # player가 가진 보조설비 카드 보여주기 (대신 활성화되지 않은 카드만)
-    # serializer = PlayerCardSerializer(my_subfac_card, many=True)
-    # print("These are your subfacility cards. Choose one to activate.", serializer.data)
+    serializer = PlayerCardSerializer(my_subfac_card, many=True)
+    print("These are your subfacility cards. Choose one to activate.", serializer.data)
     # 고른 카드의 활성화 비용만큼 개인자원판에 있는지 확인
     # 살 수 있을만큼 자원 존재: 구입한 보조설비 카드가 활성화, 개인 자원판에서 activation cost만큼 차감한다
     if my_resource.resource_num >= activation_cost.resource_num:
