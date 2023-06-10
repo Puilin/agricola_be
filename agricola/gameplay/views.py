@@ -92,6 +92,8 @@ class AccountViewSet(ModelViewSet):
             playercard.save()
         actionboxs = ActionBox.objects.all()
         for actionbox in actionboxs:
+            if actionbox.is_res:
+                actionbox.acc_resource = actionbox.add_resource
             actionbox.is_occupied = False
             actionbox.save()
         FamilyPosition.objects.all().delete()
@@ -1082,6 +1084,9 @@ class FamilyPositionViewSet(ModelViewSet):
                     act = ActionBox.objects.get(id=8)
                     act.is_occupied = True
                     act.save()
+            # 회합장소
+            elif action_id == 9:
+                response = meeting_place(player)
             #곡식종자
             elif action_id == 10:
                 response = grain_seed(player)
