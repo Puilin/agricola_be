@@ -193,3 +193,20 @@ def farm_extension(player):
     if can_build_room:
         return Response({"code": 2, "message": "That player can build only room"})
     return Response({'code':-1, "message": "That player doesn't seem to have enough resources"}, status=404)
+
+def meeting_place(player):
+    meeting_place_act = ActionBox.objects.get(id=9)
+    if meeting_place_act.is_occupied:
+        return Response({'detail': 'There\'s someone else in meeting place'}, status=404)
+    
+    meeting_place_act.is_occupied = True
+    meeting_place_act.save()
+
+    players = Player.objects.all()
+    for p in players:
+        p.fst_player = False
+        p.save()
+    player.fst_player = True
+    player.save()
+
+    return Response({'message': "The first player updated to player {}".format(player.id)})
