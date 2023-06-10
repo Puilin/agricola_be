@@ -226,8 +226,7 @@ def add_fam(player, card):
         Q(player_id=player) &
         Q(activate=1) &
         Q(card_id__in=range(15, 29)))  # 29는 포함X
-    # pick_card = PlayerCard.objects.get(card_id=22)
-    activation_cost = ActivationCost.objects.get(card_id=22)
+    activation_cost = ActivationCost.objects.get(card_id=card)
     my_resource = PlayerResource.objects.get(player_id=player, resource_id=1)
 
     # 1. '기본가족늘리기' 칸에 다른 말이 있는지 확인
@@ -260,5 +259,6 @@ def add_fam(player, card):
     # 자원이 모자라 살 수 없는 경우 404
     else:
         return Response({'detail': 'There are not enough resources to buy this card.'}, status=404)
+
     response = Response({'success': 'Add family action completed successfully.'}, status=200)
     return response

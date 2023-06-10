@@ -1071,6 +1071,7 @@ class FamilyPositionViewSet(ModelViewSet):
 
         # Get the player and action objects
         player = Player.objects.get(id=player_id)
+        card = PlayerCard.objects.get(card_id=card_id)
         another_player = Player.objects.exclude(id=player_id).first()
         action = ActionBox.objects.get(id=action_id)
 
@@ -1128,6 +1129,10 @@ class FamilyPositionViewSet(ModelViewSet):
                                                            {'data': {'player_id': player_id, 'card_id': card_id}})())
                 else:
                     return Response({'error': 'You can\'t activate some card'}, status=status.HTTP_403_FORBIDDEN)
+
+            # 기본 가족 늘리기
+            elif action_id == 23:
+                response = add_fam(player, card)
 
             # 코드가 404면 -> 해당 행동이 거부됨 ->함수 종료
             if response.status_code == 404:
