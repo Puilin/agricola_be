@@ -1229,7 +1229,14 @@ class FamilyPositionViewSet(ModelViewSet):
             if player.remain_num != 0:
                 player.remain_num -= 1
                 player.save()
-
+                board = PlayerBoardStatus.objects.get(player_id=player)
+                pos = BoardPosition.objects.filter(board_id=board).get(position=1)
+                if pos.is_fam:
+                    pos.is_fam = False
+                else:
+                    pos = BoardPosition.objects.filter(board_id=board).get(position=2)
+                    pos.is_fam = False
+                pos.save()
             return response
         else:
             return Response({'error': 'It is not your turn to take an action.'}, status=status.HTTP_403_FORBIDDEN)
