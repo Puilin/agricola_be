@@ -91,9 +91,6 @@ class AccountViewSet(ModelViewSet):
         for playercard in playercards:
             playercard.activate = 0
             playercard.save()
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
         actionboxs = ActionBox.objects.all()
         for actionbox in actionboxs:
             if actionbox.is_res:
@@ -103,9 +100,6 @@ class AccountViewSet(ModelViewSet):
         FamilyPosition.objects.all().delete()
         player_viewset = PlayerViewSet()
         player_viewset.choose_first_player(request)
->>>>>>> a3f47d0f7fe30bf4600bb962d5325aab369705d2
-=======
->>>>>>> 912a9f1bde2b65a14fade96ce9e227f264b459f6
         return Response(status=200)
 
 
@@ -373,11 +367,8 @@ class PlayerBoardStatusViewSet(ModelViewSet):
         player = Player.objects.get(id=player_id)
         board = self.queryset.get(player_id=player)
         slot = BoardPosition.objects.filter(board_id=board).get(position=position)  # 칸번호로 포지션 받아오기
-<<<<<<< HEAD
 
-        resouce = PlayerResource.objects.filter(player_id=player).get(resource_id=animal_type+6)
-=======
->>>>>>> 912a9f1bde2b65a14fade96ce9e227f264b459f6
+        resouce = PlayerResource.objects.filter(player_id=player).get(resource_id=animal_type + 6)
 
         position_type = slot.position_type
         # 우리가 아님
@@ -386,47 +377,19 @@ class PlayerBoardStatusViewSet(ModelViewSet):
 
         # 해당 칸에 동물이 아무도 없으면
         if slot.animal_num == 0:
-<<<<<<< HEAD
-            if (update_animal_type(board, position, animal_type)):
-                slot.animal_num += 1
-                slot.save()
-                pen = get_pen_by_postiion(board, position)
-                pen.current_num += 1
-                pen.save()
-                return Response({'message': 'succeessfully added a(an) {} to {}'.format(animal_type, position)})
-            else:
-                return Response({'error': 'update_animal_type'}, status=500)
-<<<<<<< HEAD
-=======
             if (get_animal_type(board, position) == 0):
                 if (update_animal_type(board, position, animal_type)):
                     pass
                 else:
-                    return Response({'error':'update_animal_type'}, status=500)
-=======
-        else:
-            if position_type == 3:  # 울타리 -> 최대 2마리
-                max_num = 2
-            elif position_type == 4:  # 외양간 -> 최대 1마리
-                max_num = 1
-            elif position_type == 5:  # 울타리외양간 -> 최대 4마리
-                max_num = 4
-            if slot.animal_num == max_num:
-                return Response({'error': 'That slot has maximum number of animals.'}, status=403)
-            # 우리의 가축 종류와 요청한 가축 종류가 같지 않다면
-            if animal_type != get_animal_type(board, position):
-                return Response({'error': 'Only the same type of animal can be put here.'}, status=403)
->>>>>>> 912a9f1bde2b65a14fade96ce9e227f264b459f6
+                    return Response({'error': 'update_animal_type'}, status=500)
             slot.animal_num += 1
             slot.save()
             pen = get_pen_by_postiion(board, position)
             pen.current_num += 1
             pen.save()
-<<<<<<< HEAD
             resouce.resource_num -= 1
             resouce.save()
-            return Response({'message':'succeessfully added a(an) {} to {}'.format(animal_type, position)})
->>>>>>> a3f47d0f7fe30bf4600bb962d5325aab369705d2
+            return Response({'message': 'succeessfully added a(an) {} to {}'.format(animal_type, position)})
         else:
             if position_type == 3:  # 울타리 -> 최대 2마리
                 max_num = 2
@@ -444,16 +407,9 @@ class PlayerBoardStatusViewSet(ModelViewSet):
             pen = get_pen_by_postiion(board, position)
             pen.current_num += 1
             pen.save()
-<<<<<<< HEAD
-            return Response({'message': 'succeessfully added a(an) {} to {}'.format(animal_type, position)})
-=======
             resouce.resource_num -= 1
             resouce.save()
-            return Response({'message':'succeessfully added a(an) {} to {}'.format(animal_type, position)})
->>>>>>> a3f47d0f7fe30bf4600bb962d5325aab369705d2
-=======
             return Response({'message': 'succeessfully added a(an) {} to {}'.format(animal_type, position)})
->>>>>>> 912a9f1bde2b65a14fade96ce9e227f264b459f6
 
 
 class BoardPositionViewSet(ModelViewSet):
@@ -493,7 +449,7 @@ class BoardPositionViewSet(ModelViewSet):
         position.save()
         serializer = self.serializer_class(position)
         return Response(serializer.data)
-    
+
     @swagger_auto_schema(
         method='put',
         request_body=openapi.Schema(
@@ -523,11 +479,10 @@ class BoardPositionViewSet(ModelViewSet):
 
         if slot.position_type != 0:
             return Response({'error': 'That position is not an empty land'})
-        
 
         reed.resource_num -= 2
         reed.save()
-        
+
         if board.house_type == 0:
             tree.resource_num -= 5
             tree.save()
@@ -543,7 +498,7 @@ class BoardPositionViewSet(ModelViewSet):
         board.house_num += 1
         board.save()
         serializer = self.serializer_class(slot)
-        return Response({'message':'contruct_room success', 'result':serializer.data})
+        return Response({'message': 'contruct_room success', 'result': serializer.data})
 
     @swagger_auto_schema(
         method='put',
@@ -571,9 +526,9 @@ class BoardPositionViewSet(ModelViewSet):
 
         if slot.position_type == 1:
             return Response({'error': 'That position is a room'}, status=403)
-        if slot.position_type in [4,5]:
+        if slot.position_type in [4, 5]:
             return Response({'error': 'Thatt position already has a cowshed'}, status=403)
-        
+
         # 충분한 자원이 있는지
         if tree.resource_num < 2:
             return Response({'error': 'That player seems not to have enough trees'})
@@ -589,7 +544,7 @@ class BoardPositionViewSet(ModelViewSet):
         board.cowshed_num += 1
         board.save()
         serializer = self.serializer_class(slot)
-        return Response({'message':'contruct_cowshed success', 'result':serializer.data})
+        return Response({'message': 'contruct_cowshed success', 'result': serializer.data})
 
     @swagger_auto_schema(
         method='post',
@@ -642,6 +597,7 @@ class BoardPositionViewSet(ModelViewSet):
         if type == 'cowshed':
             available_cowshed = get_available_cowshed(board_pos)
             return Response({'available': available_cowshed})
+
 
 class FencePositionViewSet(ModelViewSet):
     queryset = FencePosition.objects.all()
@@ -827,6 +783,18 @@ class SubFacilityCardViewSet(ModelViewSet):
         chunked_subcards = [subfacilitycards[i:i + 7] for i in range(0, 14, 7)]  # 7개씩 두 묶음으로 나눕니다.
         serialized_data = []
 
+        player1 = Player.objects.get(id=1)
+        player2 = Player.objects.get(id=2)
+
+        chunk1 = chunked_subcards[0]
+        chunk2 = chunked_subcards[1]
+
+        for sub_card in chunk1:
+            PlayerCard.objects.create(player_id=player1, card_id=sub_card.card_id)
+
+        for sub_card in chunk2:
+            PlayerCard.objects.create(player_id=player2, card_id=sub_card.card_id)
+
         for chunk in chunked_subcards:
             serializer = SubFacilityCardSerializer(chunk, many=True)
             serialized_data.append(serializer.data)
@@ -838,13 +806,25 @@ class JobCardViewSet(ModelViewSet):
     queryset = JobCard.objects.all()
     serializer_class = JobCardSerializer
 
-    @action(detail=False, methods=['post'])
+    @action(detail=False, methods=['get'])
     def get_random_jobcards(self, request):
         jobcards = list(JobCard.objects.all())
         shuffle(jobcards)  # 리스트를 랜덤하게 섞습니다.
 
         chunked_subcards = [jobcards[i:i + 7] for i in range(0, 14, 7)]  # 7개씩 두 묶음으로 나눕니다.
         serialized_data = []
+
+        player1 = Player.objects.get(id=1)
+        player2 = Player.objects.get(id=2)
+
+        chunk1 = chunked_subcards[0]
+        chunk2 = chunked_subcards[1]
+
+        for job_card in chunk1:
+            PlayerCard.objects.create(player_id=player1, card_id=job_card.card_id)
+
+        for job_card in chunk2:
+            PlayerCard.objects.create(player_id=player2, card_id=job_card.card_id)
 
         for chunk in chunked_subcards:
             serializer = JobCardSerializer(chunk, many=True)
@@ -891,38 +871,31 @@ class MainFacilityCardViewSet(ModelViewSet):
         if not found:
             return Response({'error': 'That player doesn\'t have that facility'}, status=403)
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-
         food = PlayerResource.objects.get(player_id=player_obj, resource_id=10)
-        animal = PlayerResource.objects.get(player_id=player_obj, resource_id=animal_type+6)
+        animal = PlayerResource.objects.get(player_id=player_obj, resource_id=animal_type + 6)
         if position == 0 and animal.resource_num > 0:
             animal.resource_num -= 1
             animal.save()
             # 화로
             if fac_id in [29, 30]:
-                if animal_type in [1,2]: # 양, 돼지
+                if animal_type in [1, 2]:  # 양, 돼지
                     food.resource_num += 2
-                elif animal_type == 3: # 소
+                elif animal_type == 3:  # 소
                     food.resource_num += 2
                 food.save()
             # 화덕
             elif fac_id in [31, 32]:
-                if animal_type == 1: # 양
+                if animal_type == 1:  # 양
                     food.resource_num += 2
                 elif animal_type == 2:
                     food.resource_num += 3
-                elif animal_type == 3: # 소
+                elif animal_type == 3:  # 소
                     food.resource_num += 4
                 food.save()
-            return Response({'message':'Cooking Success'})
+            return Response({'message': 'Cooking Success'})
         elif position == 0:
-            return Response({'error':'That player seems to have no that type of animal'}, status=403)
-        
->>>>>>> a3f47d0f7fe30bf4600bb962d5325aab369705d2
-=======
->>>>>>> 912a9f1bde2b65a14fade96ce9e227f264b459f6
+            return Response({'error': 'That player seems to have no that type of animal'}, status=403)
+
         if not does_have_animal(player_obj, animal_type):
             return Response({'error': 'That player seems to have no that type of animal'}, status=403)
 
@@ -933,48 +906,22 @@ class MainFacilityCardViewSet(ModelViewSet):
         if slot.animal_num == 0 or get_animal_type(board, position) != animal_type:
             return Response({'error': 'That position seems not to have that type of animal'}, status=403)
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> 912a9f1bde2b65a14fade96ce9e227f264b459f6
-        resource = PlayerResource.objects.get(player_id=player_obj, resource_id=10)
-
         # 화로
         if fac_id in [29, 30]:
             if animal_type in [1, 2]:  # 양, 돼지
-                resource.resource_num += 2
+                food.resource_num += 2
             elif animal_type == 3:  # 소
-                resource.resource_num += 2
-            resource.save()
+                food.resource_num += 2
+            food.save()
         # 화덕
         elif fac_id in [31, 32]:
             if animal_type == 1:  # 양
-                resource.resource_num += 2
-            elif animal_type == 2:
-                resource.resource_num += 3
-            elif animal_type == 3:  # 소
-                resource.resource_num += 4
-            resource.save()
-=======
-        
-
-        # 화로
-        if fac_id in [29, 30]:
-            if animal_type in [1,2]: # 양, 돼지
-                food.resource_num += 2
-            elif animal_type == 3: # 소
-                food.resource_num += 2
-            food.save()
-        # 화덕
-        elif fac_id in [31, 32]:
-            if animal_type == 1: # 양
                 food.resource_num += 2
             elif animal_type == 2:
                 food.resource_num += 3
-            elif animal_type == 3: # 소
+            elif animal_type == 3:  # 소
                 food.resource_num += 4
             food.save()
->>>>>>> a3f47d0f7fe30bf4600bb962d5325aab369705d2
         # 칸에서 동물수 줄임
         slot.animal_num -= 1
         slot.save()
@@ -1124,7 +1071,6 @@ class FamilyPositionViewSet(ModelViewSet):
 
         # Get the player and action objects
         player = Player.objects.get(id=player_id)
-        card = PlayerCard.objects.get(card_id=card_id)
         another_player = Player.objects.exclude(id=player_id).first()
         action = ActionBox.objects.get(id=action_id)
 
@@ -1149,10 +1095,6 @@ class FamilyPositionViewSet(ModelViewSet):
             elif action_id == 2:
                 # perform_action_2()
                 pass
-<<<<<<< HEAD
-<<<<<<< HEAD
-            # 곡식종자
-=======
             # 농장 확장
             elif action_id == 8:
                 response = farm_extension(player)
@@ -1163,11 +1105,7 @@ class FamilyPositionViewSet(ModelViewSet):
             # 회합장소
             elif action_id == 9:
                 response = meeting_place(player)
-            #곡식종자
->>>>>>> a3f47d0f7fe30bf4600bb962d5325aab369705d2
-=======
             # 곡식종자
->>>>>>> 912a9f1bde2b65a14fade96ce9e227f264b459f6
             elif action_id == 10:
                 response = grain_seed(player)
             # 숲
@@ -1181,12 +1119,15 @@ class FamilyPositionViewSet(ModelViewSet):
                 response = sheep_market(player)
             # 집개조
             elif action_id == 21:
-                response = house_upgrade(player)
-                # player_card = PlayerCardViewSet()
-                # player_card.activate_card({'player_id': player_id, 'card_id':card_id})
-            # 기본 가족 늘리기
-            elif action_id == 23:
-                response = add_fam(player, card)
+                player_card = PlayerCardViewSet()
+                result = player_card.activable_check(
+                    request=type('DummyRequest', (object,), {'data': {'player_id': player_id}})())
+                if result:
+                    response = house_upgrade(player)
+                    player_card.activate_card(request=type('DummyRequest', (object,),
+                                                           {'data': {'player_id': player_id, 'card_id': card_id}})())
+                else:
+                    return Response({'error': 'You can\'t activate some card'}, status=status.HTTP_403_FORBIDDEN)
 
             # 코드가 404면 -> 해당 행동이 거부됨 ->함수 종료
             if response.status_code == 404:
@@ -1394,6 +1335,29 @@ class PlayerCardViewSet(ModelViewSet):
     queryset = PlayerCard.objects.all()
     serializer_class = PlayerCardSerializer
 
+    @swagger_auto_schema(
+        method='get',
+        manual_parameters=[
+            openapi.Parameter('player_id', openapi.IN_QUERY, description='Player ID', type=openapi.TYPE_INTEGER),
+        ]
+    )
+    @action(detail=False, methods=['get'])
+    def get_activate_card(self, request):
+        my_id = request.query_params.get('player_id')
+        activate_cards = PlayerCard.objects.filter(player_id=my_id, activate=1)
+        serialized_data = []
+        for activate_card in activate_cards:
+            serializer = PlayerCardSerializer(activate_card)
+            serialized_data.append(serializer.data)
+
+        return Response(serialized_data)
+
+    # @swagger_auto_schema(
+    #     method='get',
+    #     manual_parameters=[
+    #         openapi.Parameter('player_id', openapi.IN_QUERY, description='Player ID', type=openapi.TYPE_INTEGER),
+    #     ]
+    # )
     @action(detail=False, methods=['get'])
     def activable_check(self, request):
         my_id = request.data.get('player_id')
@@ -1410,6 +1374,18 @@ class PlayerCardViewSet(ModelViewSet):
             if flag == 1:
                 serializer = PlayerCardSerializer(my_card)
                 serialized_data.append(serializer.data)
+        main_cardlist = MainFacilityCard.objects.filter(player_id=0)
+        for main_card in main_cardlist:
+            flag = 1
+            card_costs = ActivationCost.objects.filter(card_id=main_card.card_id)
+            for card_cost in card_costs:
+                my_resource = PlayerResource.objects.get(player_id=my_id, resource_id=card_cost.resource_id)
+                if my_resource.resource_num < card_cost.resource_num:
+                    flag = 0
+                    break
+            if flag == 1:
+                serializer = MainFacilityCardSerializer(main_card)
+                serialized_data.append(serializer.data)
 
         return Response(serialized_data)
 
@@ -1419,49 +1395,38 @@ class PlayerCardViewSet(ModelViewSet):
         my_id = request.data.get('player_id')
         player = Player.objects.get(id=my_id)
         choice_card = request.data.get('card_id')
-<<<<<<< HEAD
-<<<<<<< HEAD
-        active_card = PlayerCard.objects.get(card_id=choice_card)
-        active_costs = ActivationCost.objects.filter(card_id=choice_card)
-=======
 
-        #활성화 가능 여부 check
-        active_costs = ActivationCost.objects.filter(card_id = choice_card)
->>>>>>> a3f47d0f7fe30bf4600bb962d5325aab369705d2
-=======
-        active_card = PlayerCard.objects.get(card_id=choice_card)
+        # 활성화 가능 여부 check
         active_costs = ActivationCost.objects.filter(card_id=choice_card)
->>>>>>> 912a9f1bde2b65a14fade96ce9e227f264b459f6
         for active_cost in active_costs:
             my_resource = PlayerResource.objects.get(player_id=my_id, resource_id=active_cost.resource_id)
             if my_resource.resource_num < active_cost.resource_num:
                 return Response({'detail': 'Not enough resources'}, status=404)
-        #주요설비일때
+        # 주요설비일때
         if 29 <= choice_card <= 38:
-            active_card = MainFacilityCard.objects.get(card_id = choice_card)
-            active_costs = ActivationCost.objects.filter(card_id = choice_card)
+            active_card = MainFacilityCard.objects.get(card_id=choice_card)
+            active_costs = ActivationCost.objects.filter(card_id=choice_card)
             for active_cost in active_costs:
-                my_resource = PlayerResource.objects.get(player_id = my_id, resource_id = active_cost.resource_id)
+                my_resource = PlayerResource.objects.get(player_id=my_id, resource_id=active_cost.resource_id)
                 my_resource.resource_num -= active_cost.resource_num
                 my_resource.save()
             active_card.player_id = my_id
             active_card.save()
             PlayerCard.objects.create(activate=1, player_id=player, card_id=active_card.card_id)
             return Response({'message': 'Activate Success'})
-        #보조설비, 직업카드일때
+        # 보조설비, 직업카드일때
         else:
-            active_card = PlayerCard.objects.get(card_id = choice_card)
+            active_card = PlayerCard.objects.get(card_id=choice_card)
             if active_card.player_id != player:
                 return Response({'detail': 'This is not your card'}, status=404)
-            active_costs = ActivationCost.objects.filter(card_id = choice_card)
+            active_costs = ActivationCost.objects.filter(card_id=choice_card)
             for active_cost in active_costs:
-                my_resource = PlayerResource.objects.get(player_id = my_id, resource_id = active_cost.resource_id)
+                my_resource = PlayerResource.objects.get(player_id=my_id, resource_id=active_cost.resource_id)
                 my_resource.resource_num -= active_cost.resource_num
                 my_resource.save()
             active_card.activate = 1
             active_card.save()
             return Response({'message': 'Activate Success'})
-
 
 
 class PenPositionViewSet(ModelViewSet):

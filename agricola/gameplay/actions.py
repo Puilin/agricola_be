@@ -216,3 +216,49 @@ def meeting_place(player):
     player.save()
 
     return Response({'message': "The first player updated to player {}".format(player.id)})
+
+# 23번 행동칸: 기본 가족 늘리기
+def add_fam(player, card):
+    add_fam_action = ActionBox.objects.get(id=23)
+    my_board = PlayerBoardStatus.objects.get(player_id=player)
+    player = Player.objects.get(id=player.id)
+    my_subfac_card = PlayerCard.objects.filter(
+        Q(player_id=player) &
+        Q(activate=1) &
+        Q(card_id__in=range(15, 29)))  # 29는 포함X
+    # pick_card = PlayerCard.objects.get(card_id=22)
+    activation_cost = ActivationCost.objects.get(card_id=22)
+    my_resource = PlayerResource.objects.get(player_id=player, resource_id=1)
+
+    # 1. '기본가족늘리기' 칸에 다른 말이 있는지 확인
+    # 다른 말이 이미 있는 경우 404
+    if add_fam_action.is_occupied:
+        return Response({'detail': 'There\'s someone else in the action box.'}, status=404)
+    # 아무도 없다면 내 말 놓기
+    else:
+        add_fam_action.is_occupied = True
+        add_fam_action.save()
+
+    # 2. player에게 빈 방이 있어야만 가족 늘리기
+    # 빈 방이 있는 경우: 신생아 1명 태어나고, 이 신생아는 23번 행동칸에 올라감
+    if my_board.house_num > (player.adult_num + player.baby_num):
+        player.baby_num += 1
+        player.remain_num -= 1
+    # 빈 방이 없는 경우 404
+    else:
+        return Response({'detail': 'There are no empty rooms.'}, status=404)
+
+    # 3. 한 후에 보조설비 하나 내기(활성화하기)
+    # player가 가진 보조설비 카드 보여주기 (대신 활성화되지 않은 카드만)
+    serializer = PlayerCardSerializer(my_subfac_card, many=True)
+    print("These are your subfacility cards. Choose one to activate.", serializer.data)
+    # 고른 카드의 활성화 비용만큼 개인자원판에 있는지 확인
+    # 살 수 있을만큼 자원 존재: 구입한 보조설비 카드가 활성화, 개인 자원판에서 activation cost만큼 차감한다
+    if my_resource.resource_num >= activation_cost.resource_num:
+        my_resource.resource_num -= activation_cost.resource_num
+        card.activate = 1
+    # 자원이 모자라 살 수 없는 경우 404
+    else:
+        return Response({'detail': 'There are not enough resources to buy this card.'}, status=404)
+    response = Response({'success': 'Add family action completed successfully.'}, status=200)
+    return response
