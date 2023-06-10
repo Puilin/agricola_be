@@ -1359,23 +1359,44 @@ class PlayerCardViewSet(ModelViewSet):
 
         return Response(serialized_data)
 
-    @action(detail=False, methods=['post'])
+    @action(detail=False, methods=['put'])
     def activate_card(self, request):
         #어떤플레이어가 어떤카드를 활성화시킬건지
         my_id = request.data.get('player_id')
+        player = Player.objects.get(id=my_id)
         choice_card = request.data.get('card_id')
-        active_card = PlayerCard.objects.get(card_id = choice_card)
+
+        #활성화 가능 여부 check
         active_costs = ActivationCost.objects.filter(card_id = choice_card)
         for active_cost in active_costs:
             my_resource = PlayerResource.objects.get(player_id = my_id, resource_id = active_cost.resource_id)
             if my_resource.resource_num < active_cost.resource_num:
                 return Response({'detail': 'Not enough resources'}, status=404)
-            else:
+        #주요설비일때
+        if 29 <= choice_card <= 38:
+            active_card = MainFacilityCard.objects.get(card_id = choice_card)
+            active_costs = ActivationCost.objects.filter(card_id = choice_card)
+            for active_cost in active_costs:
+                my_resource = PlayerResource.objects.get(player_id = my_id, resource_id = active_cost.resource_id)
                 my_resource.resource_num -= active_cost.resource_num
                 my_resource.save()
-        active_card.activate = 1
-        active_card.save()
-        return Response({'message': 'Activate Success'})
+            active_card.player_id = my_id
+            active_card.save()
+            PlayerCard.objects.create(activate=1, player_id=player, card_id=active_card.card_id)
+            return Response({'message': 'Activate Success'})
+        #보조설비, 직업카드일때
+        else:
+            active_card = PlayerCard.objects.get(card_id = choice_card)
+            if active_card.player_id != player:
+                return Response({'detail': 'This is not your card'}, status=404)
+            active_costs = ActivationCost.objects.filter(card_id = choice_card)
+            for active_cost in active_costs:
+                my_resource = PlayerResource.objects.get(player_id = my_id, resource_id = active_cost.resource_id)
+                my_resource.resource_num -= active_cost.resource_num
+                my_resource.save()
+            active_card.activate = 1
+            active_card.save()
+            return Response({'message': 'Activate Success'})
 
 class PenPositionViewSet(ModelViewSet):
     queryset = PenPosition.objects.all()
