@@ -25,6 +25,7 @@ router.register(r'resource', views.ResourceViewSet)
 router.register(r'mainfacilitycard', views.MainFacilityCardViewSet)
 router.register(r'playercard', views.PlayerCardViewSet)
 router.register(r'penposition', views.PenPositionViewSet)
+router.register(r'fstplayer', views.FstPlayerViewSet)
 
 urlpatterns = [
     path('', include(router.urls)),
