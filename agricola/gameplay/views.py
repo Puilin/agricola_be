@@ -174,6 +174,9 @@ class PlayerViewSet(ModelViewSet):
             players.update(fst_player=False)  # 모든 플레이어의 'fst_player' 필드를 False로 변경
             first_player.fst_player = True  # 선택된 선 플레이어의 'fst_player' 필드를 True로 설정
             first_player.save()
+            origin = FstPlayer.objects.first()
+            origin.player_id = first_player.id
+            origin.save()
             return Response({'success': True, 'first_player': first_player.id})
         else:
             return Response({'success': False, 'message': 'No players found.'})
@@ -939,6 +942,20 @@ class ActionBoxViewSet(ModelViewSet):
     queryset = ActionBox.objects.all()
     serializer_class = ActionBoxSerializer
 
+    @action(detail=False, methods=['get'])
+    def get_actions_with_pid(self, request):
+        familyposition = FamilyPosition.objects.all()
+        response_list = []
+        for action in self.queryset:
+            if action.is_occupied:
+                act = familyposition.get(action_id=action.id)
+                pid = act.player_id.id
+                obj = {"player_id":pid, "action_id":act.action_id.id, "action_name":act.action_id.name}
+                response_list.append(obj)
+            else:
+                obj = {"player_id":-1, "action_id":action.id, "action_name":action.name}
+                response_list.append(obj)
+        return Response(response_list)
 
 class GameStatusViewSet(ModelViewSet):
     queryset = GameStatus.objects.all()
@@ -957,10 +974,14 @@ class GameStatusViewSet(ModelViewSet):
     @action(detail=False, methods=['get'])
     def round_end(self, request):
         players = Player.objects.all()
+        fstplayer = FstPlayer.objects.first()
         for player in players:
             player.adult_num += player.baby_num
             player.remain_num = player.adult_num
             player.baby_num = 0
+            if player.fst_player:
+                fstplayer.player_id = player.id
+                fstplayer.save()
             player.save()
 
         actionboxes = ActionBox.objects.all()
@@ -1043,15 +1064,15 @@ class GameStatusViewSet(ModelViewSet):
     def my_turn(self, request):
         player_id = request.query_params.get('player_id')
 
-        player = Player.objects.get(id=player_id)
         another_player = Player.objects.exclude(id=player_id).first()
         game_status = self.get_queryset().first()
         turn_counter = game_status.turn
+        origin = FstPlayer.objects.first()
 
         is_first_player_turn = turn_counter % 2 == 1
 
-        result = another_player.remain_num == 0 or (is_first_player_turn and player.fst_player) or (
-                    not is_first_player_turn and not player.fst_player)
+        result = another_player.remain_num == 0 or (is_first_player_turn and player_id == origin.player_id) or (
+                    not is_first_player_turn and player_id != origin.player_id)
 
         return Response({'my_turn': result})
 
@@ -1085,13 +1106,18 @@ class FamilyPositionViewSet(ModelViewSet):
 
         # Get the player and action objects
         player = Player.objects.get(id=player_id)
-        card = PlayerCard.objects.get(card_id=card_id)
+        card = None
+        try:
+            card = PlayerCard.objects.get(card_id=card_id)
+        except PlayerCard.DoesNotExist:
+            pass
         another_player = Player.objects.exclude(id=player_id).first()
         action = ActionBox.objects.get(id=action_id)
 
         # Get the current turn counter from the game_status table
         game_status = GameStatus.objects.first()
         turn_counter = game_status.turn
+        origin = FstPlayer.objects.first()
 
         # Check whose turn it is based on the turn counter
         is_first_player_turn = turn_counter % 2 == 1
@@ -1100,8 +1126,7 @@ class FamilyPositionViewSet(ModelViewSet):
 
         # Check if it's the player's turn
         # 상대방의 가족 구성원이 없거나, 자신의 차례일 경우
-        if another_player.remain_num == 0 or (is_first_player_turn and player.fst_player) or (
-                not is_first_player_turn and not player.fst_player):
+        if another_player.remain_num == 0 or (is_first_player_turn and player_id == origin.player_id) or (not is_first_player_turn and player_id != origin.player_id):
             # Action id 별로 메소드 호출
 
             # 덤불
@@ -1486,3 +1511,7 @@ class PlayerCardViewSet(ModelViewSet):
 class PenPositionViewSet(ModelViewSet):
     queryset = PenPosition.objects.all()
     serializer_class = PenPositionSerializer
+
+class FstPlayerViewSet(ModelViewSet):
+    queryset = FstPlayer.objects.all()
+    serializer_class = FstPlayerSerializer
