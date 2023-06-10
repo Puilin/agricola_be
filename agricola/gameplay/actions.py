@@ -263,3 +263,157 @@ def add_fam(player, card):
 
     response = Response({'success': 'Add family action completed successfully.'}, status=200)
     return response
+
+def soil_mining(player):
+    soil_action = ActionBox.objects.get(id=13)
+    my_resource = PlayerResource.objects.filter(player_id=player).get(resource_id=2)
+    # 흙채굴장에 누군가 있으면
+    if soil_action.is_occupied:
+        return Response({'detail': 'There\'s someone else in soil mining farm.'}, status=404)
+    if soil_action.acc_resource > 0:
+        # 흙채굴장에 이제 사람이 있음
+        soil_action.is_occupied = True
+        # 플레이어의 자원에 추가
+        my_resource.resource_num += soil_action.acc_resource
+        # 흙채굴장에서 흙를 몽땅 없앰
+        soil_action.acc_resource -= soil_action.acc_resource
+
+        # db에 저장
+        soil_action.save()
+        my_resource.save()
+
+        serializer = PlayerResourceSerializer(my_resource)
+        return Response(serializer.data)
+    else:
+        return Response({'detail': 'There\'s no exisiting resources.'}, status=404)
+
+def reed_field(player):
+    reed_action = ActionBox.objects.get(id=14)
+    my_resource = PlayerResource.objects.filter(player_id=player).get(resource_id=3)
+    # 갈대밭에 누군가 있으면
+    if reed_action.is_occupied:
+        return Response({'detail': 'There\'s someone else in reed field.'}, status=404)
+    if reed_action.acc_resource > 0:
+        # 갈대밭에 이제 사람이 있음
+        reed_action.is_occupied = True
+        # 플레이어의 자원에 추가
+        my_resource.resource_num = my_resource.resource_num + reed_action.acc_resource
+        # 같대밭에서 갈대를 몽땅 없앰
+        reed_action.acc_resource -= reed_action.acc_resource
+
+        # db에 저장
+        reed_action.save()
+        my_resource.save()
+
+        serializer = PlayerResourceSerializer(my_resource)
+        return Response(serializer.data)
+    else:
+        return Response({'detail': 'There\'s no exisiting resources.'}, status=404)
+    
+    
+def day_laborer(player):
+    day_action = ActionBox.objects.get(id=14)
+    my_resource = PlayerResource.objects.filter(player_id=player).get(resource_id=10)
+    # 날품팔이에 누군가 있으면
+    if day_action.is_occupied:
+        return Response({'detail': 'There\'s someone else in day laborer.'}, status=404)
+    
+    # 날품팔이에 이제 사람이 있음
+    day_action.is_occupied = True
+    # 플레이어의 자원에 추가
+    my_resource.resource_num += 2
+
+    # db에 저장
+    day_action.save()
+    my_resource.save()
+
+    serializer = PlayerResourceSerializer(my_resource)
+    return Response(serializer.data)
+
+def fishing(player):
+    fishing_action = ActionBox.objects.get(id=16)
+    my_resource = PlayerResource.objects.filter(player_id=player).get(resource_id=10)
+    # 낚시에 누군가 있으면
+    if fishing_action.is_occupied:
+        return Response({'detail': 'There\'s someone else in fishing.'}, status=404)
+    if fishing_action.acc_resource > 0:
+        # 낚시에 이제 사람이 있음
+        fishing_action.is_occupied = True
+        # 플레이어의 자원에 추가
+        my_resource.resource_num = my_resource.resource_num + fishing_action.acc_resource
+        # 낚시에서 음식을 몽땅 없앰
+        fishing_action.acc_resource -= fishing_action.acc_resource
+
+        # db에 저장
+        fishing_action.save()
+        my_resource.save()
+
+        serializer = PlayerResourceSerializer(my_resource)
+        return Response(serializer.data)
+    else:
+        return Response({'detail': 'There\'s no exisiting resources.'}, status=404)
+    
+def west_mine(player):
+    west_action = ActionBox.objects.get(id=22)
+    my_resource = PlayerResource.objects.filter(player_id=player).get(resource_id=4)
+    # 서부채석장에 누군가 있으면
+    if west_action.is_occupied:
+        return Response({'detail': 'There\'s someone else in west mine.'}, status=404)
+    if west_action.acc_resource > 0:
+        # 서부채석장에 이제 사람이 있음
+        west_action.is_occupied = True
+        # 플레이어의 자원에 추가
+        my_resource.resource_num = my_resource.resource_num + west_action.acc_resource
+        # 서부채석장에서 돌을 몽땅 없앰
+        west_action.acc_resource -= west_action.acc_resource
+
+        # db에 저장
+        west_action.save()
+        my_resource.save()
+
+        serializer = PlayerResourceSerializer(my_resource)
+        return Response(serializer.data)
+    else:
+        return Response({'detail': 'There\'s no exisiting resources.'}, status=404)
+    
+def east_mine(player):
+    east_action = ActionBox.objects.get(id=27)
+    my_resource = PlayerResource.objects.filter(player_id=player).get(resource_id=4)
+    # 동부채석장에 누군가 있으면
+    if east_action.is_occupied:
+        return Response({'detail': 'There\'s someone else in east mine.'}, status=404)
+    if east_action.acc_resource > 0:
+        # 동부채석장에 이제 사람이 있음
+        east_action.is_occupied = True
+        # 플레이어의 자원에 추가
+        my_resource.resource_num = my_resource.resource_num + east_action.acc_resource
+        # 동부채석장에서 돌을 몽땅 없앰
+        east_action.acc_resource -= east_action.acc_resource
+
+        # db에 저장
+        east_action.save()
+        my_resource.save()
+
+        serializer = PlayerResourceSerializer(my_resource)
+        return Response(serializer.data)
+    else:
+        return Response({'detail': 'There\'s no exisiting resources.'}, status=404)
+    
+def vege_seed(player):
+    vege_action = ActionBox.objects.get(id=25)
+    my_resource = PlayerResource.objects.filter(player_id=player).get(resource_id=6)
+    # 채소종자에 누군가 있으면
+    if vege_action.is_occupied:
+        return Response({'detail': 'There\'s someone else in vege seed.'}, status=404)
+    
+    # 채소종자에 이제 사람이 있음
+    vege_action.is_occupied = True
+    # 플레이어의 자원에 추가
+    my_resource.resource_num += 1
+
+    # db에 저장
+    vege_action.save()
+    my_resource.save()
+
+    serializer = PlayerResourceSerializer(my_resource)
+    return Response(serializer.data)
