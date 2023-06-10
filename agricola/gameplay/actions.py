@@ -2,6 +2,7 @@ from .models import *
 from .serializer import *
 from rest_framework.response import Response
 from .utils import *
+from django.db.models import Q
 
 
 def forest(player):
@@ -226,7 +227,7 @@ def add_fam(player, card):
         Q(player_id=player) &
         Q(activate=1) &
         Q(card_id__in=range(15, 29)))  # 29는 포함X
-    activation_cost = ActivationCost.objects.get(card_id=card)
+    activation_cost = ActivationCost.objects.get(card_id=22)
     my_resource = PlayerResource.objects.get(player_id=player, resource_id=1)
 
     # 1. '기본가족늘리기' 칸에 다른 말이 있는지 확인
