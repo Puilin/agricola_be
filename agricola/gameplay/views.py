@@ -965,42 +965,56 @@ class GameStatusViewSet(ModelViewSet):
 
         return Response({'next round':game_status.round, 'turn':game_status.turn})
 
-    @action(detail=False, methods=['put'])
-    def priod_end(self, request):
+    @action(detail=False, methods=['get'])
+    def period_end1(self, request):
         players = Player.objects.all()
         for player in players:
             playerBoard = PlayerBoardStatus.objects.get(player_id = player.id)
-            boardPositions = BoardPosition.objects.filter(player_id = playerBoard.player_id)
+            boardPositions = BoardPosition.objects.filter(board_id = playerBoard.id)
             # (수확1번) 1️⃣,2️⃣작물이 심어져 있는 밭에서 곡식/채소 1개씩 수확
             for boardPosition in boardPositions:
-                if boardPosition.is_fam and boardPosition.vege_num != 0:
+                if boardPosition.position_type == 2 and boardPosition.vege_num != 0:
                     boardPosition.vege_num -= 1
                     playerResource = PlayerResource.objects.get(player_id=player.id, resource_id=boardPosition.vege_id)
                     playerResource.resource_num += 1
                     playerResource.save()
             # (수확2번) 1️⃣,2️⃣가족 먹여살리기
-            playerfood = PlayerResource.objects.get(player_id=player.id, resource_id=10)
+            playerfood = PlayerResource.objects.get(player_id=player, resource_id=10)
             consume = player.adult_num*2 + player.baby_num*2
             playerfood.resource_num -= consume
-            hungrytoken = PlayerResource.objects.get(player_id=player.id, resource_id=11)
+            hungrytoken = PlayerResource.objects.get(player_id=player, resource_id=11)
             while playerfood.resource_num < 0 :
-                hungrytoken += 1
-                playerfood += 1
+                hungrytoken.resource_num += 1
+                playerfood.resource_num += 1
             playerfood.save()
             hungrytoken.save()
-            # (수확3번) 1️⃣,2️⃣동물 번식
-            sheep = PlayerResource.objects.get(player_id=player.id, resource_id=7)
-            if sheep.resource_num >= 2:
-                sheep.resource_num += 1
-            sheep.save()
-            pig = PlayerResource.objects.get(player_id=player.id, resource_id=8)
-            if pig.resource_num >= 2:
-                pig.resource_num += 1
-            pig.save()
-            cow = PlayerResource.objects.get(player_id=player.id, resource_id=9)
-            if cow.resource_num >= 2:
-                cow.resource_num += 1
-            cow.save()
+        return Response({'message':'next period'})
+    # def period_end2(self, request):
+    #     # (수확3번) 1️⃣,2️⃣동물 번식
+    #     sheep = PlayerResource.objects.get(player_id=player.id, resource_id=7)
+    #     sheep_pens = PenPosition.objects.filter(animal_type = 1)
+    #     cowshed_positions = BoardPosition.objects.filter(position_type = 4)
+    #     sheep_flag = 0
+    #     if sheep.resource_num >= 2:
+    #         for sheep_pen in sheep_pens:
+    #             if sheep_pen.current_num < sheep_pen.max_num:
+    #                 sheep_pen.current_num += 1
+    #                 sheep.resource_num += 1
+    #                 sheep_pen.save()
+    #                 sheep.save()
+    #                 break
+    #             elif 
+
+    #         sheep.resource_num += 1
+    #     sheep.save()
+    #     pig = PlayerResource.objects.get(player_id=player.id, resource_id=8)
+    #     if pig.resource_num >= 2:
+    #         pig.resource_num += 1
+    #     pig.save()
+    #     cow = PlayerResource.objects.get(player_id=player.id, resource_id=9)
+    #     if cow.resource_num >= 2:
+    #         cow.resource_num += 1
+    #     cow.save()
 
     @swagger_auto_schema(
         method='get',
