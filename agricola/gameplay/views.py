@@ -1071,8 +1071,7 @@ class GameStatusViewSet(ModelViewSet):
 
         is_first_player_turn = turn_counter % 2 == 1
 
-        result = another_player.remain_num == 0 or (is_first_player_turn and player_id == origin.player_id) or (
-                    not is_first_player_turn and player_id != origin.player_id)
+        result = another_player.remain_num == 0 or (is_first_player_turn and int(player_id) == origin.player_id) or (not is_first_player_turn and int(player_id) != origin.player_id)
 
         return Response({'my_turn': result})
 
