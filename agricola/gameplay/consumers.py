@@ -6,6 +6,10 @@ from .models import *
 from .serializer import *
 from random import shuffle, choice
 from asgiref.sync import sync_to_async
+from gameplay.views import *
+from django.core.handlers.base import BaseHandler
+from django.test import RequestFactory
+from django.test.client import Client
 
 class Consumer(AsyncJsonWebsocketConsumer):
     async def connect(self):
@@ -71,9 +75,15 @@ class Consumer(AsyncJsonWebsocketConsumer):
 
         if request_type == 'take_action':
             await self.take_action(text_data_json)
+        
+        if request_type == 'get_player_resource':
+            await self.get_player_resource(text_data_json)
 
     async def game_message(self, event):
         await self.send_json(event['message'])
+    
+    async def api_response(self, event):
+        await self.send(event['message']['data'])
 
     async def get_account_data(self):
         accounts = await sync_to_async(Account.objects.all)()
@@ -182,3 +192,30 @@ class Consumer(AsyncJsonWebsocketConsumer):
 
         serializer = PlayerResourceSerializer(player_resource)
         return serializer.data
+    
+    # 이렇게 view에서 만든 api 재활용 가능
+    async def get_player_resource(self, request):
+        player_id = request.get('player_id')
+        resource_id = request.get('resource_id')
+
+        factory = RequestFactory()
+        http_request = factory.get('/playerresource/get_player_resource', {'player_id': player_id, 'resource_id': resource_id})
+
+        client = Client()
+        response = client.get('/playerresource/get_player_resource/', {'player_id': player_id, 'resource_id': resource_id})
+
+        # Retrieve the response content
+        content = response.content
+
+        # Construct a JSON response
+        json_response = {
+            'status': response.status_code,
+            'data': content.decode(),
+        }
+
+        result = {
+            'type': 'api_response',
+            'message': json_response
+        }
+
+        await self.channel_layer.group_send(message=result, group=self.room_group_name)
