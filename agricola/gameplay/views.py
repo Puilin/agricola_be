@@ -18,6 +18,16 @@ class AccountViewSet(ModelViewSet):
     queryset = Account.objects.all()
     serializer_class = AccountSerializer
 
+    @swagger_auto_schema(
+        method='post',
+        request_body=openapi.Schema(
+            type=openapi.TYPE_OBJECT,
+            properties={
+                'user_id': openapi.Schema(type=openapi.TYPE_STRING),
+                'user_pw': openapi.Schema(type=openapi.TYPE_STRING)
+            }
+        )
+    )
     @action(detail=False, methods=['POST'])
     def login(self, request): # { 'user_id' : admin, 'user_pw': admin }
         input_id = request.data.get('user_id')
@@ -398,8 +408,7 @@ class BoardPositionViewSet(ModelViewSet):
                 for position in position_list:
                     animal_type[position - 1] = pen_position.animal_type
         serializer = self.serializer_class(board_position_arr, many=True)
-        return Response({"house_type": house_type,"animal_type": animal_type, "position_arr": serializer.data})
-
+        return Response({"house_type": house_type,"animal_type": animal_type, "position_arr": serializer.data}, status=status.HTTP_200_OK)
 
 class FencePositionViewSet(ModelViewSet):
     queryset = FencePosition.objects.all()

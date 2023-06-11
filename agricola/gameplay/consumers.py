@@ -1,16 +1,17 @@
 import json
 
 from channels.db import database_sync_to_async
-from channels.generic.websocket import AsyncWebsocketConsumer
+from channels.generic.websocket import AsyncJsonWebsocketConsumer
 from .models import *
 from .serializer import *
 from random import shuffle, choice
+from asgiref.sync import sync_to_async
 
-class GameConsumer(AsyncWebsocketConsumer):
+class Consumer(AsyncJsonWebsocketConsumer):
     async def connect(self):
         self.room_name = self.scope['url_route']['kwargs']['room_name']
         self.player_id = self.scope['url_route']['kwargs']['player_id']
-        self.room_group_name = 'room_%s' % self.room_name
+        self.room_group_name = 'group_%s' % self.room_name
 
         # 방이 존재하지 않으면 방을 생성합니다.
         if not await self.room_exists():
@@ -44,8 +45,14 @@ class GameConsumer(AsyncWebsocketConsumer):
         request_type = text_data_json.get('type')
 
         if request_type == 'get_account_data':
-            card_data = await self.get_card_data()
-            await self.send_json(card_data)
+            account_data = await self.get_account_data()
+            await self.channel_layer.group_send(
+                self.room_group_name,
+                {
+                    'type': 'game_message',
+                    'message': account_data
+                }
+            )
 
         if request_type == 'choose_first_player':
             fst_player = await self.choose_first_player()
@@ -64,6 +71,14 @@ class GameConsumer(AsyncWebsocketConsumer):
 
         if request_type == 'take_action':
             await self.take_action(text_data_json)
+
+    async def game_message(self, event):
+        await self.send_json(event['message'])
+
+    async def get_account_data(self):
+        accounts = await sync_to_async(Account.objects.all)()
+        serializer = AccountSerializer(accounts, many=True)
+        return serializer.data
 
     async def choose_first_player(self):
         players = Player.objects.all()
@@ -145,8 +160,8 @@ class GameConsumer(AsyncWebsocketConsumer):
             response_data = {'error': 'It is not your turn to take an action.'}
 
         await self.send_json(response_data)
-    
-    
+
+
     async def update_player_resource(self, request):
         player_id = request.query_params.get('player_id')
         resource_id = request.query_params.get('resource_id')
