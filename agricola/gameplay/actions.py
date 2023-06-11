@@ -429,6 +429,8 @@ def facility(player, card):
     if 29 <= card.id <= 38:
         active_card = MainFacilityCard.objects.get(card_id=card.id)
         active_costs = ActivationCost.objects.filter(card_id=card)
+        if active_card.player_id != 0:
+            return Response({'detail': 'This card has its owner'}, status=404)
         for active_cost in active_costs:
             my_resource = PlayerResource.objects.get(player_id=player.id, resource_id=active_cost.resource_id)
             my_resource.resource_num -= active_cost.resource_num
@@ -455,3 +457,61 @@ def facility(player, card):
         return Response({'message': 'Activate Success'})
     else:
         return Response({'detail': 'This is not faility card'}, status=404)
+    
+def baking(player, card_id):
+    baking_action = ActionBox.objects.get(id = 19)
+    my_grain = PlayerResource.objects.get(player_id = player.id, resource_id = 5)
+    my_food =PlayerResource.objects.get(player_id = player.id, resource_id = 10)
+    if does_have_baking_facility(player) == False:
+        return Response({'detail': 'You don\'t have faility card'}, status=404)
+    if baking_action.is_occupied:
+        return Response({'detail': 'There\'s someone else in baking.'}, status=404)
+    if my_grain.resource_num == 0:
+        return Response({'detail': 'You don\'t have grain'}, status=404)
+    
+    cook_num = card_id
+    facility_cards = MainFacilityCard.objects.filter(player_id = player.id)
+    #흙가마
+    if cook_num > 0:
+        try:
+            facility_card = PlayerCard.objects.get(player_id = player.id, card_id = 33)
+            cook_num -= 1
+            my_grain.resource_num -= 1
+            my_food.resource_num += 5
+        except PlayerCard.DoesNotExist:
+            pass
+
+    #돌가마
+    if cook_num > 0:
+        try:
+            facility_card = PlayerCard.objects.get(player_id = player.id, card_id = 34)
+            for _ in range(2):
+                if cook_num == 0: break
+                cook_num -= 1
+                my_grain.resource_num -= 1
+                my_food.resource_num += 4
+        except PlayerCard.DoesNotExist:
+            pass
+
+    for facility_card in facility_cards:
+        #화덕
+        if facility_card.card_id in [31, 32]:
+            my_grain.resource_num -= cook_num
+            my_food.resource_num += cook_num*3
+            cook_num = 0
+        
+        #화로
+        if facility_card.card_id in [29, 30]:
+            my_grain.resource_num -= cook_num
+            my_food.resource_num += cook_num*2
+            cook_num = 0
+
+    if cook_num != 0:
+        return Response({'detail': 'You can\'t bake the required amount of bread.'}, status=404)
+
+    baking_action.is_occupied = True
+    baking_action.save()
+    my_food.save()
+    my_grain.save()
+
+    return Response({'message': 'baking Success'})
