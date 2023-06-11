@@ -106,3 +106,8 @@ class PenPositionSerializer(serializers.ModelSerializer):
     class Meta:
         model = PenPosition
         fields = '__all__'
+
+class FstPlayerSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = FstPlayer
+        fields = '__all__'

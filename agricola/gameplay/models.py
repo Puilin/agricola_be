@@ -82,6 +82,7 @@ class JobCard(models.Model):
 class MainFacilityCard(models.Model):
     card_id = models.ForeignKey('Card', on_delete=models.CASCADE)
     type = models.CharField(max_length=50)
+    player_id = models.IntegerField(default=0)
 
 class ActionBox(models.Model):
     card_id = models.ForeignKey('PeriodCard', null=True, on_delete=models.CASCADE)
@@ -100,6 +101,9 @@ class FamilyPosition(models.Model):
 class GameStatus(models.Model):
     turn = models.IntegerField(default=1)
     round = models.IntegerField(null = False, default=1)
+
+class FstPlayer(models.Model):
+    player_id = models.IntegerField(null=False)
 
 class PlayerCard(models.Model):
     player_id = models.ForeignKey('Player', on_delete=models.CASCADE)
