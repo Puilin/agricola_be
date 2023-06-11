@@ -951,7 +951,7 @@ class GameStatusViewSet(ModelViewSet):
         return Response({'turn': turn_counter})
 
     @swagger_auto_schema(
-        method='put',
+        method='get',
         request_body=None
     )
     @action(detail=False, methods=['get'])
@@ -1006,32 +1006,56 @@ class GameStatusViewSet(ModelViewSet):
             playerfood.save()
             hungrytoken.save()
         return Response({'message':'next period'})
-    # def period_end2(self, request):
-    #     # (수확3번) 1️⃣,2️⃣동물 번식
-    #     sheep = PlayerResource.objects.get(player_id=player.id, resource_id=7)
-    #     sheep_pens = PenPosition.objects.filter(animal_type = 1)
-    #     cowshed_positions = BoardPosition.objects.filter(position_type = 4)
-    #     sheep_flag = 0
-    #     if sheep.resource_num >= 2:
-    #         for sheep_pen in sheep_pens:
-    #             if sheep_pen.current_num < sheep_pen.max_num:
-    #                 sheep_pen.current_num += 1
-    #                 sheep.resource_num += 1
-    #                 sheep_pen.save()
-    #                 sheep.save()
-    #                 break
-    #             elif 
+    
+    @action(detail=False, methods=['post'])
+    def period_end2(self, request):
+        # (수확3번) 1️⃣,2️⃣동물 번식
+        pos = request.data.get('pos_id')
+        players = Player.objects.all()
+        for player in players:
+            playerBoard = PlayerBoardStatus.objects.get(player_id = player.id)
+            boardPositions = BoardPosition.objects.filter(board_id = playerBoard)
+            #양 : 1
+            sheep = PlayerResource.objects.get(player_id=player.id, resource_id=7)
+            if sheep.resource_num >= 2 and animal_check(player, 1) >= 1:
+                animal_breed(player, 1, pos)
+            #돼지 : 2
+            pig = PlayerResource.objects.get(player_id=player.id, resource_id=8)
+            if pig.resource_num >= 2 and animal_check(player, 2) >= 1:
+                animal_breed(player, 2, pos)
+            #소 : 3
+            cow = PlayerResource.objects.get(player_id=player.id, resource_id=9)
+            if cow.resource_num >= 2 and animal_check(player, 3) >= 1:
+                animal_breed(player, 3, pos)
 
-    #         sheep.resource_num += 1
-    #     sheep.save()
-    #     pig = PlayerResource.objects.get(player_id=player.id, resource_id=8)
-    #     if pig.resource_num >= 2:
-    #         pig.resource_num += 1
-    #     pig.save()
-    #     cow = PlayerResource.objects.get(player_id=player.id, resource_id=9)
-    #     if cow.resource_num >= 2:
-    #         cow.resource_num += 1
-    #     cow.save()
+
+
+
+
+        # sheep = PlayerResource.objects.get(player_id=player.id, resource_id=7)
+        # sheep_pens = PenPosition.objects.filter(animal_type = 1)
+        # cowshed_positions = BoardPosition.objects.filter(position_type = 4)
+        # sheep_flag = 0
+        # if sheep.resource_num >= 2:
+        #     for sheep_pen in sheep_pens:
+        #         if sheep_pen.current_num < sheep_pen.max_num:
+        #             sheep_pen.current_num += 1
+        #             sheep.resource_num += 1
+        #             sheep_pen.save()
+        #             sheep.save()
+        #             break
+        #         elif 
+
+        #     sheep.resource_num += 1
+        # sheep.save()
+        # pig = PlayerResource.objects.get(player_id=player.id, resource_id=8)
+        # if pig.resource_num >= 2:
+        #     pig.resource_num += 1
+        # pig.save()
+        # cow = PlayerResource.objects.get(player_id=player.id, resource_id=9)
+        # if cow.resource_num >= 2:
+        #     cow.resource_num += 1
+        # cow.save()
 
     @swagger_auto_schema(
         method='get',

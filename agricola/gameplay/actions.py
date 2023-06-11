@@ -312,7 +312,7 @@ def reed_field(player):
     
     
 def day_laborer(player):
-    day_action = ActionBox.objects.get(id=14)
+    day_action = ActionBox.objects.get(id=15)
     my_resource = PlayerResource.objects.filter(player_id=player).get(resource_id=10)
     # 날품팔이에 누군가 있으면
     if day_action.is_occupied:
@@ -408,11 +408,12 @@ def vege_seed(player):
     
     # 채소종자에 이제 사람이 있음
     vege_action.is_occupied = True
+    vege_action.save()
     # 플레이어의 자원에 추가
     my_resource.resource_num += 1
 
     # db에 저장
-    vege_action.save()
+    
     my_resource.save()
 
     serializer = PlayerResourceSerializer(my_resource)
