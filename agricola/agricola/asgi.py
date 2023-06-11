@@ -8,25 +8,20 @@ https://docs.djangoproject.com/en/4.1/howto/deployment/asgi/
 """
 
 import os
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'agricola.settings')
+import django
+django.setup()
 
 from channels.auth import AuthMiddlewareStack
 from channels.routing import ProtocolTypeRouter, URLRouter
-from channels.security.websocket import AllowedHostsOriginValidator
 from django.core.asgi import get_asgi_application
-
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'agricola.settings')
-
-import gameplay.routing
+from gameplay.routing import websocket_urlpatterns
 
 application = ProtocolTypeRouter({
   "http": get_asgi_application(),
-  "websocket": AllowedHostsOriginValidator(
-        AuthMiddlewareStack(
-            URLRouter(
-                gameplay.routing.websocket_urlpatterns
-            )
-        )
-    ),
+  "websocket": AuthMiddlewareStack(
+    URLRouter(
+      websocket_urlpatterns
+    )
+  )
 })
-# JS에 다음 코드 추가
-# let socket = new WebSocket("ws://127.0.0.1:8000/gameplay/test1")	// ws:// 이후의 주소는 routing.py 의 경로

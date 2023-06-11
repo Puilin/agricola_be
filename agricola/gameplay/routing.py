@@ -1,14 +1,8 @@
 from django.urls import path
 
 from . import consumers
-from channels.routing import ProtocolTypeRouter, URLRouter
 
+# ws://localhost:8000/ws/agricola1/player_1/
 websocket_urlpatterns = [
-    path('ws/room_<str:room_name>/player_<str:player_id>/', consumers.GameConsumer.as_asgi()),
+        path('ws/<str:room_name>/player_<str:player_id>/', consumers.Consumer.as_asgi())
 ]
-
-application = ProtocolTypeRouter(
-    {
-        "websocket": URLRouter(websocket_urlpatterns)
-    }
-)

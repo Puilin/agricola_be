@@ -15,6 +15,8 @@ pymysql.install_as_MySQLdb()
 from pathlib import Path
 import os
 
+os.environ["DJANGO_ALLOW_ASYNC_UNSAFE"] = 'true'
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -44,17 +46,21 @@ ALLOWED_HOSTS = [
 # Application definition
 
 INSTALLED_APPS = [
+    'channels',
+    'gameplay',
+    'daphne',
+    'channels_redis',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+
     'drf_yasg',
     'rest_framework',
-    'gameplay',
     'corsheaders',
-    'channels',
+
 ]
 
 MIDDLEWARE = [
@@ -86,14 +92,16 @@ TEMPLATES = [
     },
 ]
 
+ASGI_APPLICATION = 'agricola.asgi.application'
 WSGI_APPLICATION = 'agricola.wsgi.application'
 
-# 웹소켓 연결용
-ASGI_APPLICATION = 'agricola.asgi.application'
 CHANNEL_LAYERS = {
     "default": {
-        "BACKEND": "channels.layers.InMemoryChannelLayer"
-    }
+        "BACKEND": 'channels_redis.core.RedisChannelLayer',
+        "CONFIG": {
+            'hosts': [('127.0.0.1', 6379)],
+        },
+    },
 }
 
 # Database

@@ -19,6 +19,16 @@ class AccountViewSet(ModelViewSet):
     queryset = Account.objects.all()
     serializer_class = AccountSerializer
 
+    @swagger_auto_schema(
+        method='post',
+        request_body=openapi.Schema(
+            type=openapi.TYPE_OBJECT,
+            properties={
+                'user_id': openapi.Schema(type=openapi.TYPE_STRING),
+                'user_pw': openapi.Schema(type=openapi.TYPE_STRING)
+            }
+        )
+    )
     @action(detail=False, methods=['POST'])
     def login(self, request):  # { 'user_id' : admin, 'user_pw': admin }
         input_id = request.data.get('user_id')
@@ -572,7 +582,6 @@ class BoardPositionViewSet(ModelViewSet):
         if type == 'cowshed':
             available_cowshed = get_available_cowshed(board_pos)
             return Response({'available': available_cowshed})
-
 
 class FencePositionViewSet(ModelViewSet):
     queryset = FencePosition.objects.all()
