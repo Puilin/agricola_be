@@ -360,6 +360,7 @@ class PlayerBoardStatusViewSet(ModelViewSet):
             resouce.save()
             return Response({'message': 'succeessfully added a(an) {} to {}'.format(animal_type, position)})
         else:
+            max_num = 0
             if position_type == 3:  # 울타리 -> 최대 2마리
                 max_num = 2
             elif position_type == 4:  # 외양간 -> 최대 1마리
@@ -913,13 +914,60 @@ class ActionBoxViewSet(ModelViewSet):
         familyposition = FamilyPosition.objects.all()
         response_list = []
         for action in self.queryset:
+            action.refresh_from_db()
             if action.is_occupied:
-                act = familyposition.get(action_id=action.id)
+                act = familyposition.get(action_id=action)
                 pid = act.player_id.id
-                obj = {"player_id":pid, "action_id":act.action_id.id, "action_name":act.action_id.name}
+                try:
+                    obj = {
+                        "player_id":pid,
+                        "action_id":act.action_id.id,
+                        "action_name":act.action_id.name,
+                        "acc_resource":act.action_id.acc_resource,
+                        "add_resource":act.action_id.add_resource,
+                        "round":act.action_id.round,
+                        "is_res":act.action_id.is_res,
+                        "is_occupied": act.action_id.is_occupied,
+                        "card_id":act.action_id.card_id.id
+                    }
+                except AttributeError:
+                    obj = {
+                        "player_id":pid,
+                        "action_id":act.action_id.id,
+                        "action_name":act.action_id.name,
+                        "acc_resource":act.action_id.acc_resource,
+                        "add_resource":act.action_id.add_resource,
+                        "round":act.action_id.round,
+                        "is_res":act.action_id.is_res,
+                        "is_occupied": act.action_id.is_occupied,
+                        "card_id":None
+                    }
                 response_list.append(obj)
             else:
-                obj = {"player_id":-1, "action_id":action.id, "action_name":action.name}
+                try:
+                    obj = {
+                        "player_id":-1,
+                        "action_id":action.id,
+                        "action_name":action.name,
+                        "acc_resource":action.acc_resource,
+                        "add_resource":action.add_resource,
+                        "round":action.round,
+                        "is_res":action.is_res,
+                        "is_occupied": action.is_occupied,
+                        "card_id":action.card_id.id
+                    }
+                except AttributeError:
+                    obj = {
+                        "player_id":-1,
+                        "action_id":action.id,
+                        "action_name":action.name,
+                        "acc_resource":action.acc_resource,
+                        "add_resource":action.add_resource,
+                        "round":action.round,
+                        "is_res":action.is_res,
+                        "is_occupied": action.is_occupied,
+                        "card_id":None
+                    }
                 response_list.append(obj)
         return Response(response_list)
 
