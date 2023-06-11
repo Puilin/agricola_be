@@ -1049,35 +1049,6 @@ class GameStatusViewSet(ModelViewSet):
             if cow.resource_num >= 2 and animal_check(player, 3) >= 1:
                 animal_breed(player, 3, pos)
 
-
-
-
-
-        # sheep = PlayerResource.objects.get(player_id=player.id, resource_id=7)
-        # sheep_pens = PenPosition.objects.filter(animal_type = 1)
-        # cowshed_positions = BoardPosition.objects.filter(position_type = 4)
-        # sheep_flag = 0
-        # if sheep.resource_num >= 2:
-        #     for sheep_pen in sheep_pens:
-        #         if sheep_pen.current_num < sheep_pen.max_num:
-        #             sheep_pen.current_num += 1
-        #             sheep.resource_num += 1
-        #             sheep_pen.save()
-        #             sheep.save()
-        #             break
-        #         elif 
-
-        #     sheep.resource_num += 1
-        # sheep.save()
-        # pig = PlayerResource.objects.get(player_id=player.id, resource_id=8)
-        # if pig.resource_num >= 2:
-        #     pig.resource_num += 1
-        # pig.save()
-        # cow = PlayerResource.objects.get(player_id=player.id, resource_id=9)
-        # if cow.resource_num >= 2:
-        #     cow.resource_num += 1
-        # cow.save()
-
     @swagger_auto_schema(
         method='get',
         manual_parameters=[
