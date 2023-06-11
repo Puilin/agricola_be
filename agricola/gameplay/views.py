@@ -336,9 +336,11 @@ class PlayerBoardStatusViewSet(ModelViewSet):
         player = Player.objects.get(id=player_id)
         board = self.queryset.get(player_id=player)
         slot = BoardPosition.objects.filter(board_id=board).get(position=position)  # 칸번호로 포지션 받아오기
-
+        if slot is None:
+            return Response({'error': 'Invalid Position'}, status=403)
         resouce = PlayerResource.objects.filter(player_id=player).get(resource_id=animal_type + 6)
-
+        if resouce is None:
+            return Response({'error': 'Invalid animal_type'}, status=403)
         position_type = slot.position_type
         # 우리가 아님
         if position_type in [0, 1, 2]:
@@ -354,8 +356,11 @@ class PlayerBoardStatusViewSet(ModelViewSet):
             slot.animal_num += 1
             slot.save()
             pen = get_pen_by_postiion(board, position)
-            pen.current_num += 1
-            pen.save()
+            if pen is None: # 외양간 하나임
+                pass
+            else:
+                pen.current_num += 1
+                pen.save()
             resouce.resource_num -= 1
             resouce.save()
             return Response({'message': 'succeessfully added a(an) {} to {}'.format(animal_type, position)})
@@ -374,7 +379,7 @@ class PlayerBoardStatusViewSet(ModelViewSet):
                 return Response({'error': 'Only the same type of animal can be put here.'}, status=403)
             slot.animal_num += 1
             slot.save()
-            pen = get_pen_by_postiion(board, position)
+            pen = get_pen_by_postiion(board, position) # 외양간은 이 코드에 도달할 일이 없음
             pen.current_num += 1
             pen.save()
             resouce.resource_num -= 1
