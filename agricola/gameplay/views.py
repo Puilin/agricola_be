@@ -1028,7 +1028,7 @@ class GameStatusViewSet(ModelViewSet):
             hungrytoken.save()
         return Response({'message':'next period'})
     
-    @action(detail=False, methods=['post'])
+    @action(detail=False, methods=['get'])
     def period_end2(self, request):
         # (수확3번) 1️⃣,2️⃣동물 번식
         pos = request.data.get('pos_id')
@@ -1102,8 +1102,8 @@ class FamilyPositionViewSet(ModelViewSet):
         player = Player.objects.get(id=player_id)
         card = None
         try:
-            card = PlayerCard.objects.get(card_id=card_id)
-        except PlayerCard.DoesNotExist:
+            card = Card.objects.get(id=card_id)
+        except Card.DoesNotExist:
             pass
         another_player = Player.objects.exclude(id=player_id).first()
         action = ActionBox.objects.get(id=action_id)
@@ -1158,22 +1158,21 @@ class FamilyPositionViewSet(ModelViewSet):
             # 흙 채굴장
             elif action_id == 13:
                 response = soil_mining(player)
-                pass
             # 갈대밭
             elif action_id == 14:
                 response = reed_field(player)
-                pass
             #날품팔이
             elif action_id == 15:
                 response = day_laborer(player)
-                pass
             #낚시
             elif action_id == 16:
                 response = fishing(player)
-                pass
             # 양시장
             elif action_id == 18:
                 response = sheep_market(player)
+            # 주요설비
+            elif action_id == 20:
+                response = facility(player, card)
             # 집개조
             elif action_id == 21:
                 player_card = PlayerCardViewSet()
@@ -1188,7 +1187,6 @@ class FamilyPositionViewSet(ModelViewSet):
             #서부채석장
             elif action_id == 22:
                 response = west_mine(player)
-                pass
             # 기본 가족 늘리기
             elif action_id == 23:
                 response = add_fam(player, card)
@@ -1207,7 +1205,6 @@ class FamilyPositionViewSet(ModelViewSet):
             #동부채석장
             elif action_id == 27:
                 response = east_mine(player)
-                pass
             # 코드가 404면 -> 해당 행동이 거부됨 ->함수 종료
             if response.status_code == 404:
                 return response

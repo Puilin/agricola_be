@@ -418,3 +418,40 @@ def vege_seed(player):
 
     serializer = PlayerResourceSerializer(my_resource)
     return Response(serializer.data)
+
+def facility(player, card):
+    facility_action = ActionBox.objects.get(id=20)
+    active_costs = ActivationCost.objects.filter(card_id = card)
+    for active_cost in active_costs:
+            my_resource = PlayerResource.objects.get(player_id=player.id, resource_id=active_cost.resource_id)
+            if my_resource.resource_num < active_cost.resource_num:
+                return Response({'detail': 'Not enough resources'}, status=404)
+    if 29 <= card.id <= 38:
+        active_card = MainFacilityCard.objects.get(card_id=card.id)
+        active_costs = ActivationCost.objects.filter(card_id=card)
+        for active_cost in active_costs:
+            my_resource = PlayerResource.objects.get(player_id=player.id, resource_id=active_cost.resource_id)
+            my_resource.resource_num -= active_cost.resource_num
+            my_resource.save()
+        facility_action.is_occupied = True
+        facility_action.save()
+        active_card.player_id = player.id
+        active_card.save()
+        PlayerCard.objects.create(activate=1, player_id=player, card_id=active_card.card_id)
+        return Response({'message': 'Activate Success'})
+    elif 15 <= card.id <= 28:
+        active_card = PlayerCard.objects.get(card_id=card.id)
+        if active_card.player_id != player:
+            return Response({'detail': 'This is not your card'}, status=404)
+        active_costs = ActivationCost.objects.filter(card_id=card)
+        for active_cost in active_costs:
+            my_resource = PlayerResource.objects.get(player_id=player.id, resource_id=active_cost.resource_id)
+            my_resource.resource_num -= active_cost.resource_num
+            my_resource.save()
+        facility_action.is_occupied = True
+        facility_action.save()
+        active_card.activate = 1
+        active_card.save()
+        return Response({'message': 'Activate Success'})
+    else:
+        return Response({'detail': 'This is not faility card'}, status=404)
