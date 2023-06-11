@@ -99,6 +99,9 @@ class AccountViewSet(ModelViewSet):
             pr.save()
         playercards = PlayerCard.objects.all()
         for playercard in playercards:
+            # 주요설비 카드 덱에서 제거
+            if playercard.card_id.id in list(range(29, 39)):
+                playercard.delete()
             playercard.activate = 0
             playercard.save()
         actionboxs = ActionBox.objects.all()
