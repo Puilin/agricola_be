@@ -515,3 +515,41 @@ def baking(player, card_id):
     my_grain.save()
 
     return Response({'message': 'baking Success'})
+
+def lesson(player, card):
+    lesson_act = ActionBox.objects.get(id=5)
+    if lesson_act.is_occupied:
+        return Response({'detail': 'There\'s someone else in lesson'}, status=404)
+    
+    cards = PlayerCard.objects.filter(player_id=player)
+    card_ids = list(range(1, 15))
+    jobcards = cards.filter(card_id__in=card_ids)
+    food = PlayerResource.objects.get(player_id=player, resource_id=10)
+
+    # 첫직업은 무료
+    if is_first_job(player):
+        try:
+            job = jobcards.get(card_id=card)
+            job.activate = 1
+            job.save()
+            lesson_act.is_occupied = True
+            lesson_act.save()
+            serialier = PlayerCardSerializer(job)
+            return Response({'message':"Player {} got a job".format(player.id), "job":serialier.data})
+        except AttributeError:
+            return Response({'error': 'Invalid card id : Check it if you have'}, status=404)
+    else:
+        if food.resource_num < 1:
+            return Response({'error': 'That player seems not to have enough food'}, status=404)
+        try:
+            job = jobcards.get(card_id=card)
+            job.activate = 1
+            job.save()
+            lesson_act.is_occupied = True
+            lesson_act.save()
+            food.resource_num -= 1
+            food.save()
+            serialier = PlayerCardSerializer(job)
+            return Response({'message':"Player {} got a job".format(player.id), "job":serialier.data})
+        except AttributeError:
+            return Response({'error': 'Invalid card id : Check it if you have'}, status=404)

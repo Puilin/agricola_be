@@ -185,3 +185,13 @@ def animal_breed(player, animal, pos):
             return Response({'error': 'You can\'t release animal in here'}, status=403)
     else:
         return Response({'error': 'You can\'t release animal in here'}, status=403)
+
+# 플레이어가 가진 직업이 하나도 없는지 체크
+def is_first_job(player):
+    cards = PlayerCard.objects.filter(player_id=player)
+    card_ids = list(range(1,15))
+    jobcards = cards.filter(card_id__in=card_ids)
+    activated_jobs = jobcards.filter(activate=1)
+    if not activated_jobs:
+        return True
+    return False

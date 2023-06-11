@@ -1158,8 +1158,7 @@ class FamilyPositionViewSet(ModelViewSet):
                 pass
             #교습
             elif action_id == 5:
-                # lesson(player, card)
-                pass
+                response = lesson(player, card)
 
             # 농장 확장
             elif action_id == 8:
