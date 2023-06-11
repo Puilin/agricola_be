@@ -87,6 +87,15 @@ def does_have_cooking_facility(player):
             return True
     return False
 
+def does_have_baking_facility(player):
+    deck = PlayerCard.objects.filter(player_id=player)
+    card_ids = deck.values_list('card_id', flat=True)
+    for id in card_ids:
+        #화로1, 화로2, 화덕1, 화덕2
+        if id in [29, 30, 31, 32, 33, 34]:
+            return True
+    return False
+
 # 칸 번호로 가축 종류 받아오는 함수
 def get_animal_type(board, position):
     pens_array = PenPosition.objects.filter(board_id=board).values_list('position_list') # 요청받은 번호에 해당하는 우리
@@ -153,6 +162,7 @@ def animal_check(player, animal):
 
     return able_num
 
+# 동물 번식
 def animal_breed(player, animal, pos):
     p_board = PlayerBoardStatus.objects.get(player_id = player.id)
     board_pos = BoardPosition.objects.get(board_id = p_board.id, position = pos)
@@ -175,4 +185,3 @@ def animal_breed(player, animal, pos):
             return Response({'error': 'You can\'t release animal in here'}, status=403)
     else:
         return Response({'error': 'You can\'t release animal in here'}, status=403)
-

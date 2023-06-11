@@ -100,46 +100,12 @@ class AccountViewSet(ModelViewSet):
         FamilyPosition.objects.all().delete()
         player_viewset = PlayerViewSet()
         player_viewset.choose_first_player(request)
+
+        facility_cards = MainFacilityCard.objects.all()
+        for facility_card in facility_cards:
+            facility_card.player_id = 0
+            facility_card.save()
         return Response(status=200)
-
-
-class PlayerViewSet(ModelViewSet):
-    queryset = Player.objects.all()
-    serializer_class = PlayerSerializer
-
-    @swagger_auto_schema(
-        responses={
-            200: openapi.Response(
-                description='Success',
-                schema=openapi.Schema(
-                    type=openapi.TYPE_OBJECT,
-                    properties={
-                        'success': openapi.Schema(type=openapi.TYPE_BOOLEAN),
-                        'first_player': openapi.Schema(type=openapi.TYPE_INTEGER),
-                    },
-                    required=['name'],
-                ),
-                examples={
-                    'application/json': {
-                        'success': True,
-                        'first_player': 1
-                    }
-                }
-            ),
-        }
-    )
-    @action(detail=False, methods=['GET'])
-    def choose_first_player(self, request):
-        players = self.get_queryset()
-        if players.exists():
-            first_player = choice(players)
-            players.update(fst_player=False)  # 모든 플레이어의 'fst_player' 필드를 False로 변경
-            first_player.fst_player = True  # 선택된 선 플레이어의 'fst_player' 필드를 True로 설정
-            first_player.save()
-            return Response({'success': True, 'first_player': first_player.id})
-        else:
-            return Response({'success': False, 'message': 'No players found.'})
-
 
 class PlayerViewSet(ModelViewSet):
     queryset = Player.objects.all()
@@ -976,6 +942,7 @@ class GameStatusViewSet(ModelViewSet):
         players = Player.objects.all()
         fstplayer = FstPlayer.objects.first()
         for player in players:
+            # 어른 말수 재할당
             player.adult_num += player.baby_num
             player.remain_num = player.adult_num
             player.baby_num = 0
@@ -983,7 +950,17 @@ class GameStatusViewSet(ModelViewSet):
                 fstplayer.player_id = player.id
                 fstplayer.save()
             player.save()
-
+            #is_fam True
+            board_positions = BoardPosition.objects.filter(position_type=1)
+            adult_num = player.adult_num
+            for board_position in board_positions:
+                if adult_num == 0:
+                    break
+                if board_position.is_fam == False:
+                    board_position.is_fam = True
+                    adult_num -= 1
+                    board_position.save()
+        #action box is_occupied False
         actionboxes = ActionBox.objects.all()
         for actionbox in actionboxes:
             if actionbox.is_res:
@@ -992,12 +969,12 @@ class GameStatusViewSet(ModelViewSet):
                 actionbox.acc_resource = actionbox.add_resource
             actionbox.is_occupied = False
             actionbox.save()
-
+        #라운드 증가, turn = 1로 세팅
         game_status = GameStatus.objects.first()
         game_status.round += 1
         game_status.turn = 1
         game_status.save()
-
+        #게임판에서 가족말 제거
         familyposition = FamilyPosition.objects.all()
         familyposition.delete()
 
@@ -1170,6 +1147,9 @@ class FamilyPositionViewSet(ModelViewSet):
             # 양시장
             elif action_id == 18:
                 response = sheep_market(player)
+            # 곡식활용
+            elif action_id == 19:
+                response = baking(player, card_id)
             # 주요설비
             elif action_id == 20:
                 response = facility(player, card)
