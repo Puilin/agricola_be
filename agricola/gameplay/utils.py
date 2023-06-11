@@ -135,3 +135,44 @@ def get_available_cowshed(board_pos):
     empty_lands = board_pos.filter(position_type=0).values_list('position', flat=True)
     pens = board_pos.filter(position_type=3).values_list('position', flat=True)
     return list(empty_lands) + list(pens)
+
+# 동물 추가 가능확인 함수 (animal = 양:1, 돼지:2, 소:3)
+def animal_check(player, animal):
+    p_board = PlayerBoardStatus.objects.get(player_id = player.id)
+    able_num = 0
+    #우리에 빈자리가 있음
+    pens = PenPosition.objects.filter(board_id = p_board, animal_type = animal)
+    for pen in pens:
+        if pen.max_num > pen.current_num:
+            able_num += (pen.max_num - pen.current_num)
+    #빈 외양간이 있음
+    board_poses = BoardPosition.objects.filter(board_id = p_board, position_type = 4)
+    for board_pos in board_poses:
+        if board_pos.animal_num == 0:
+            able_num += 1
+
+    return able_num
+
+def animal_breed(player, animal, pos):
+    p_board = PlayerBoardStatus.objects.get(player_id = player.id)
+    board_pos = BoardPosition.objects.get(board_id = p_board.id, position = pos)
+    p_resource = PlayerResource.objects.get(player_id = player.id, resource_id = animal+6)
+    if board_pos.position_type == 3 or board_pos.position_type == 5:
+        pen = get_pen_by_postiion(p_board, pos)
+        if pen.animal_type == animal and pen.max_num > pen.current_num:
+            pen.current_num += 1
+            p_resource.resource_num += 1
+            pen.save()
+            p_resource.save()
+        else:
+            return Response({'error': 'You can\'t release animal in here'}, status=403)
+    elif board_pos.position_type == 4:
+        if board_pos.animal_num == 0:
+            board_pos.animal_num += 1
+            p_resource.resource_num += 1
+            board_pos.save()
+        else:
+            return Response({'error': 'You can\'t release animal in here'}, status=403)
+    else:
+        return Response({'error': 'You can\'t release animal in here'}, status=403)
+
