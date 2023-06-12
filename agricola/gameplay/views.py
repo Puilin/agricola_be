@@ -545,7 +545,7 @@ class BoardPositionViewSet(ModelViewSet):
     )
     @action(detail=False, methods=['POST'])
     def get_all_position(self, request):  # { "player_id" : 1 }
-        player_id = request.data.get('player_id')
+        player_id = int(request.data.get('player_id'))
         board_status = PlayerBoardStatus.objects.get(player_id=player_id)
         board_status_id = board_status.id
         board_position = BoardPosition.objects.filter(board_id=board_status_id)
@@ -1136,9 +1136,9 @@ class FamilyPositionViewSet(ModelViewSet):
         serializer.is_valid(raise_exception=True)
 
         # Load the player ID and action ID from the request data
-        player_id = request.data.get('player_id')
-        action_id = request.data.get('action_id')
-        card_id = request.data.get('card_id')
+        player_id = int(request.data.get('player_id'))
+        action_id = int(request.data.get('action_id'))
+        card_id = int(request.data.get('card_id'))
 
         # Get the player and action objects
         player = Player.objects.get(id=player_id)
@@ -1387,8 +1387,8 @@ class PlayerResourceViewSet(ModelViewSet):
     )
     @action(detail=False, methods=['put'])
     def update_player_resource(self, request):
-        player_id = request.data.get('player_id')
-        resource_id = request.data.get('resource_id')
+        player_id = int(request.data.get('player_id'))
+        resource_id = int(request.data.get('resource_id'))
         num_to_add = int(request.data.get('num', 0))
 
         try:
