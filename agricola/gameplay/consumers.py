@@ -1,5 +1,5 @@
 import json
-
+import requests
 from channels.db import database_sync_to_async
 from channels.generic.websocket import AsyncJsonWebsocketConsumer
 from .models import *
@@ -79,6 +79,42 @@ class Consumer(AsyncJsonWebsocketConsumer):
         if request_type == 'get_player_resource':
             await self.get_player_resource(text_data_json)
 
+        if request_type == 'get_all_position':
+            await self.get_all_position(text_data_json)
+        
+        if request_type == 'update_player_resource':
+            await self.update_player_resource(text_data_json)
+        
+        if request_type == 'patch_board_position':
+            await self.patch_board_position(text_data_json)
+        
+        if request_type == 'post_penposition':
+            await self.post_penposition(text_data_json)
+        
+        if request_type == 'activate_card':
+            await self.activate_card(text_data_json)
+        
+        if request_type == 'raise_animal':
+            await self.raise_animal(text_data_json)
+        
+        if request_type == 'constuct_land':
+            await self.constuct_land(text_data_json)
+        
+        if request_type == 'construct_room':
+            await self.construct_room(text_data_json)
+        
+        if request_type == 'put_boardposition':
+            await self.put_boardposition(text_data_json)
+        
+        if request_type == 'construct_cowshed':
+            await self.construct_cowshed(text_data_json)
+        
+        if request_type == 'build_fence':
+            await self.build_fence(text_data_json)
+
+        if request_type == 'login':
+            await self.login(text_data_json)
+
     async def game_message(self, event):
         await self.send_json(event['message'])
     
@@ -135,74 +171,142 @@ class Consumer(AsyncJsonWebsocketConsumer):
         turn_counter = game_status.turn
         await self.send_json({'turn': turn_counter})
 
-    async def take_action(self, data):
-        serializer = self.get_serializer(data=data)
-        serializer.is_valid(raise_exception=True)
+    # 이렇게 view에서 만든 api 재활용 가능
+    async def take_action(self, request):
+        turn = request.get('turn')
+        player_id = request.get('player_id')
+        action_id = request.get('action_id')
+        card_id = request.get('card_id')
 
-        player_id = data.get('player')
-        action_id = data.get('action')
+        factory = RequestFactory()
+        http_request = factory.post('/familyposition/take_action/', {'turn': turn, 'player_id': player_id, 'action_id': action_id, 'card_id': card_id})
 
-        player = Player.objects.get(id=player_id)
-        action = ActionBox.objects.get(id=action_id)
+        client = Client()
+        response = client.post('/familyposition/take_action/', {'turn': turn, 'player_id': player_id, 'action_id': action_id, 'card_id': card_id})
 
-        game_status = GameStatus.objects.first()
-        turn_counter = game_status.turn
+        # Retrieve the response content
+        content = response.content
 
-        is_first_player_turn = turn_counter % 2 == 1
+        # Construct a JSON response
+        json_response = {
+            'status': response.status_code,
+            'data': content.decode(),
+        }
 
-        if (is_first_player_turn and player.is_first_player) or (
-                not is_first_player_turn and not player.is_first_player):
-            if action_id == 1:
-                # perform_action_1()
-                pass
-            elif action_id == 2:
-                # perform_action_2()
-                pass
+        result = {
+            'type': 'api_response',
+            'message': json_response
+        }
 
-            game_status.turn = turn_counter + 1
-            game_status.save()
-
-            new_instance = FamilyPosition.objects.create(player=player, action=action, turn=turn_counter + 1)
-            new_instance.save()
-
-            response_data = serializer.data
-        else:
-            response_data = {'error': 'It is not your turn to take an action.'}
-
-        await self.send_json(response_data)
+        await self.channel_layer.group_send(message=result, group=self.room_group_name)
 
 
     async def update_player_resource(self, request):
-        player_id = request.query_params.get('player_id')
-        resource_id = request.query_params.get('resource_id')
-        num_to_add = int(request.query_params.get('num_to_add', 0))
+        player_id = request.get('player_id')
+        resource_id = request.get('resource_id')
+        num = request.get('num')
 
-        try:
-            player_resource = PlayerResource.objects.get(player_id=player_id, resource_id=resource_id)
-        except PlayerResource.DoesNotExist:
-            await self.send_json({'detail': 'Player resource not found.'})
+        factory = RequestFactory()
+        http_request = factory.put('/playerresource/update_player_resource/', {'player_id': player_id, 'resource_id': resource_id, 'num': num})
 
-        resource_num = player_resource.resource_num + num_to_add
+        client = Client()
+        response = client.put('/playerresource/update_player_resource/', {'player_id': player_id, 'resource_id': resource_id, 'num': num}, content_type="application/json")
 
-        if num_to_add < 0 and resource_num < 0:
-            await self.send_json({'detail': 'Cannot reduce resource below zero.'})
+        # Retrieve the response content
+        content = response.content
 
-        player_resource.resource_num = resource_num
-        player_resource.save()
+        # Construct a JSON response
+        json_response = {
+            'status': response.status_code,
+            'data': content.decode(),
+        }
 
-        serializer = PlayerResourceSerializer(player_resource)
-        return serializer.data
+        result = {
+            'type': 'api_response',
+            'message': json_response
+        }
+
+        await self.channel_layer.group_send(message=result, group=self.room_group_name)
     
     # 이렇게 view에서 만든 api 재활용 가능
     async def get_player_resource(self, request):
-        player_id = request.get('player_id')
-        resource_id = request.get('resource_id')
+        player_id = int(request.get('player_id'))
+        resource_id = int(request.get('resource_id'))
 
         factory = RequestFactory()
-        http_request = factory.get('/playerresource/get_player_resource', {'player_id': player_id, 'resource_id': resource_id})
+        http_request = factory.get('/playerresource/get_player_resource/', {'player_id': player_id, 'resource_id': resource_id})
 
         client = Client()
         response = client.get('/playerresource/get_player_resource/', {'player_id': player_id, 'resource_id': resource_id})
+
+        # Retrieve the response content
+        content = response.content
+
+        # Construct a JSON response
+        json_response = {
+            'status': response.status_code,
+            'data': content.decode(),
+        }
+
+        result = {
+            'type': 'api_response',
+            'message': json_response
+        }
+
+        await self.channel_layer.group_send(message=result, group=self.room_group_name)
+
+    async def get_all_position(self, request):
+        player_id = request.get('player_id')
+
+        factory = RequestFactory()
+        http_request = factory.post('/boardposition/get_all_position/', {'player_id': player_id})
+
+        client = Client()
+        response = client.post('/boardposition/get_all_position/', {'player_id': player_id})
+
+        # Retrieve the response content
+        content = response.content
+
+        # Construct a JSON response
+        json_response = {
+            'status': response.status_code,
+            'data': content.decode(),
+        }
+
+        result = {
+            'type': 'api_response',
+            'message': json_response
+        }
+
+        await self.channel_layer.group_send(message=result, group=self.room_group_name)
+    
+    # async def patch_boardposition(self, request):
+        
+        id = request.get('id')
+        position = request.get('position')
+        position_type = request.get('position_type')
+        is_fam = request.get('is_fam')
+        vege_type = request.get('vege_type')
+        vege_num = request.get('vege_num')
+        animal_num = request.get('animal_num')
+        board_id = request.get('board_id')
+        
+        req_body = {
+            'id': id,
+            'position': position,
+            'position_type': position_type,
+            'is_fam': is_fam,
+            'vege_type': vege_type,
+            'vege_num': vege_num,
+            'animal_num': animal_num,
+            'board_id': board_id
+        }
+
+        factory = RequestFactory()
+        http_request = factory.patch('/boardposition/{}/'.format(id), req_body)
+
+        client = Client()
+        response = client.patch('/boardposition/{}/'.format(id), req_body)
 
         # Retrieve the response content
         content = response.content
