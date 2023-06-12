@@ -606,17 +606,16 @@ class FencePositionViewSet(ModelViewSet):
         return positions  # int 배열
 
     def get_invalid_position(self, board_id):  # 집, 밭 포지션 가져오기
-        position_query = BoardPosition.objects.filter(board_id=board_id, position_type=2).values_list('position',
-                                                                                                      flat=True)
+        position_query = BoardPosition.objects.filter(board_id=board_id, position_type=2).values_list('position', flat=True)
         positions = list(position_query)
-        position_query = BoardPosition.objects.filter(board_id=board_id, position_type=1).values_list('position',
-                                                                                                      flat=True)
+        position_query = BoardPosition.objects.filter(board_id=board_id, position_type=1).values_list('position', flat=True)
         positions.extend(position_query)
         return positions
 
     def get_valid_position(self, ex_fence_list, invalid_position):  # fence_list에 있는 포지션들의 주변 포지션을 리턴
         if not ex_fence_list:  # 기존에 설치한 울타리가 없다면
-            return list(range(3, 16))
+            ls = list(range(3, 16))
+            return list(set(ls) - set(invalid_position))
         valid_position = []
         for position in ex_fence_list:
             if ((position % 3) != 0):  # 오른쪽 끝이 아니면
@@ -638,22 +637,6 @@ class FencePositionViewSet(ModelViewSet):
                     return positions
         return False
 
-    @swagger_auto_schema(
-        method='post',
-        request_body=openapi.Schema(
-            type=openapi.TYPE_OBJECT,
-            properties={
-                'player_id': openapi.Schema(type=openapi.TYPE_INTEGER),
-                'fence_array': openapi.Schema(
-                    type=openapi.TYPE_ARRAY,
-                    items=openapi.Schema(
-                        type=openapi.TYPE_ARRAY,
-                        items=openapi.Schema(type=openapi.TYPE_INTEGER)
-                    )
-                )
-            }
-        )
-    )
     @action(detail=False, methods=['POST'])
     def build_fence(self, request):  # { "player_id": 12, "fence_array": [[1, 2, 7], [6]] }
         player_id = request.data.get('player_id')
@@ -664,8 +647,7 @@ class FencePositionViewSet(ModelViewSet):
         ex_fence_array = self.get_fencepositions_with_boardid(board_id)  # 기존에 가지고 있던 울타리들의 포지션 배열
         invalid_position = self.get_invalid_position(board_id)  # 집, 밭 포지션
         valid_position = self.get_valid_position(ex_fence_array, invalid_position)  # fence_array에 포함되어야 하는 포지션
-        print(
-            f'ex_fence_array: {ex_fence_array}\ninvalid_positioin: {invalid_position}\nvalid_position: {valid_position}')
+        print(f'player_id: {player_id}\nfence_array: {fence_array}\nex_fence_array: {ex_fence_array}\ninvalid_positioin: {invalid_position}\nvalid_position: {valid_position}')
         pen_num = len(fence_array)
 
         while (len(fence_array) > 0):  # 유효한 울타리인지 검사
@@ -679,6 +661,7 @@ class FencePositionViewSet(ModelViewSet):
                 fence_array = [sublist for sublist in fence_array if sublist != new_position]
 
         fence_array = fst_fence_array
+        print('울타리치기 시작')
 
         # db에 추가
         fence_position_arr = []
