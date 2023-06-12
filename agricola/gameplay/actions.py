@@ -554,3 +554,12 @@ def lesson(player, card):
             return Response({'message':"Player {} got a job".format(player.id), "job":serialier.data})
         except AttributeError:
             return Response({'error': 'Invalid card id : Check it if you have'}, status=404)
+    
+def fencing(player):
+    fencing_act = ActionBox.objects.get(id=17)
+    if fencing_act.is_occupied:
+        return Response({'detail': 'There\'s someone else in fencing'}, status=404)
+    fencing_act.is_occupied = True
+    fencing_act.save()
+
+    return Response({'message': 'Now fencing actionbox is occupied'})

@@ -1189,6 +1189,8 @@ class FamilyPositionViewSet(ModelViewSet):
             #낚시
             elif action_id == 16:
                 response = fishing(player)
+            elif action_id == 17:
+                response = fencing(player)
             # 양시장
             elif action_id == 18:
                 response = sheep_market(player)
