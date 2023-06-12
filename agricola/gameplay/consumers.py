@@ -126,6 +126,9 @@ class Consumer(AsyncJsonWebsocketConsumer):
 
             if request_type == 'round_end':
                 await self.round_end(text_data_json)
+            
+            if request_type == 'period_end':
+                await self.period_end(text_data_json)
         except:
             await self.channel_layer.group_send(self.room_group_name, {'type':'game_message', 'message':'Invalid API formula'})
 
@@ -578,6 +581,8 @@ class Consumer(AsyncJsonWebsocketConsumer):
         await self.channel_layer.group_send(message=result, group=self.room_group_name)
     
     async def get_available_slots(self, request):
+        player_id = request.get('player_id')
+        slot_type = request.get('slot_type')
 
         req_body = {
             "player_id" : player_id,
@@ -609,6 +614,48 @@ class Consumer(AsyncJsonWebsocketConsumer):
     async def round_end(self, request):
         client = Client()
         response = client.get('/gamestatus/round_end/')
+
+        # Retrieve the response content
+        content = response.content
+
+        # Construct a JSON response
+        json_response = {
+            'status': response.status_code,
+            'data': content.decode(),
+        }
+
+        result = {
+            'type': 'api_response',
+            'message': json_response
+        }
+
+        await self.channel_layer.group_send(message=result, group=self.room_group_name)
+
+    async def period_end(self, request):
+        client = Client()
+        response = client.get('/gamestatus/period_end/')
+
+        # Retrieve the response content
+        content = response.content
+
+        # Construct a JSON response
+        json_response = {
+            'status': response.status_code,
+            'data': content.decode(),
+        }
+
+        result = {
+            'type': 'api_response',
+            'message': json_response
+        }
+
+        await self.channel_layer.group_send(message=result, group=self.room_group_name)
+    
+    async def calculate_score(self, request):
+        player_id = request.get('player_id')
+
+        client = Client()
+        response = client.get('/playerboardstatus/calculate/', {'player_id':player_id})
 
         # Retrieve the response content
         content = response.content
