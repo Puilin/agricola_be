@@ -676,8 +676,7 @@ class FencePositionViewSet(ModelViewSet):
                     top = False
 
                 # 해당 포지션의 type을 3으로 바꿈
-                position_id = self.get_positionid(board_id,
-                                                  fences[i])  # board_id가 board_id인 객체 중 position이 fences[i]인 객체의 id
+                position_id = self.get_positionid(board_id, fences[i])  # board_id가 board_id인 객체 중 position이 fences[i]인 객체의 id
                 board_position = BoardPosition.objects.get(id=position_id)
                 board_position.position_type = 3
                 board_position.save()

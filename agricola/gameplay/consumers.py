@@ -27,7 +27,7 @@ class Consumer(AsyncJsonWebsocketConsumer):
             self.channel_name
         )
         client = Client()
-        client.get('/account/initial/')
+        await client.get('/account/initial/')
         await self.accept()
         await self.channel_layer.group_send(
             self.room_group_name,
@@ -260,7 +260,7 @@ class Consumer(AsyncJsonWebsocketConsumer):
     async def build_fence(self, fence_array): # { 'fence_array': [[3, 4], [5, 6]] }
         fence_array = json.loads(fence_array)
         client = Client()
-        response = client.post('/fenceposition/build_fence/', {'player_id': self.player_id, 'fence_array': str(fence_array)})
+        response = client.post('/fenceposition/build_fence/', {'player_id': self.player_id, 'fence_array': str(fence_array)}, content_type="application/json")
         content = response.content
         json_response = {
             'status': response.status_code,
@@ -551,10 +551,6 @@ class Consumer(AsyncJsonWebsocketConsumer):
             "user_id": user_id,
             "user_pw": user_pw
         }
-
-        factory = RequestFactory()
-        http_request = factory.post('/account/login/', req_body)
-
         client = Client()
         response = client.post('/account/login/', req_body, content_type='application/json')
 
