@@ -258,7 +258,7 @@ class Consumer(AsyncJsonWebsocketConsumer):
         fence_array = json.loads(fence_array)
         print(f'json fence_array: {fence_array}')
         client = Client()
-        response = client.post('/fenceposition/build_fence/', {'player_id': self.player_id, 'fence_array': fence_array})
+        response = client.post('/fenceposition/build_fence/', {'player_id': self.player_id, 'fence_array': str(fence_array)})
         content = response.content
         json_response = {
             'status': response.status_code,
