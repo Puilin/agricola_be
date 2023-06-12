@@ -117,6 +117,9 @@ class AccountViewSet(ModelViewSet):
         for facility_card in facility_cards:
             facility_card.player_id = 0
             facility_card.save()
+        entry = FstPlayer.objects.get(id=2)
+        entry.player_id = 0
+        entry.save()
         return Response(status=200)
 
 class PlayerViewSet(ModelViewSet):
@@ -1021,6 +1024,10 @@ class GameStatusViewSet(ModelViewSet):
         #게임판에서 가족말 제거
         familyposition = FamilyPosition.objects.all()
         familyposition.delete()
+        #round_array 업데이트
+        entry = FstPlayer.objects.get(id=2)
+        entry.player_id += 1
+        entry.save()
 
         return Response({'next round': game_status.round, 'turn': game_status.turn})
 
@@ -1542,3 +1549,15 @@ class PenPositionViewSet(ModelViewSet):
 class FstPlayerViewSet(ModelViewSet):
     queryset = FstPlayer.objects.all()
     serializer_class = FstPlayerSerializer
+
+    @action(detail=False, methods=['GET'])
+    def get_round_array(self, request):
+        round_array = self.queryset.get(id=2)
+        idx = round_array.player_id
+        array = []
+        for i in range(14):
+            if i < idx:
+                array.append(True)
+            else:
+                array.append(False)
+        return Response({"round_array": array})
