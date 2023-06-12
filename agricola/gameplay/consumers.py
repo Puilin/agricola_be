@@ -59,7 +59,6 @@ class Consumer(AsyncJsonWebsocketConsumer):
             )
         if request_type == 'build_fence':
             result = await self.build_fence(text_data_json.get('fence_array'))
-            print(f'result 받아오기 성공')
 
             await self.channel_layer.group_send(
                 self.room_group_name,
@@ -256,15 +255,13 @@ class Consumer(AsyncJsonWebsocketConsumer):
 
     async def build_fence(self, fence_array): # { 'fence_array': [[3, 4], [5, 6]] }
         fence_array = json.loads(fence_array)
-        print(f'json fence_array: {fence_array}')
         client = Client()
-        response = client.post('/fenceposition/build_fence/', {'player_id': self.player_id, 'fence_array': fence_array})
+        response = client.post('/fenceposition/build_fence/', {'player_id': self.player_id, 'fence_array': str(fence_array)})
         content = response.content
         json_response = {
             'status': response.status_code,
             'data': content.decode(),
         }
-        print(f'json_response data: {json_response.get("data")}')
 
         result = {
             'type': 'api_response',
