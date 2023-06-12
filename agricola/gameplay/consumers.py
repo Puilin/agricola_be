@@ -27,7 +27,7 @@ class Consumer(AsyncJsonWebsocketConsumer):
             self.channel_name
         )
         client = Client()
-        client.get('/account/initial/')
+        client.get('/account/init_/')
         await self.accept()
         await self.channel_layer.group_send(
             self.room_group_name,
