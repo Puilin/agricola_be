@@ -13,9 +13,9 @@ from django.test.client import Client
 
 class Consumer(AsyncJsonWebsocketConsumer):
     async def connect(self):
-        self.room_name = self.scope['url_route']['kwargs']['room_name']
-        self.player_id = self.scope['url_route']['kwargs']['player_id']
-        self.room_group_name = 'group_%s' % self.room_name
+        self.room_name = self.scope['url_route']['kwargs']['room_name'] # agricola1
+        self.player_id = self.scope['url_route']['kwargs']['player_id'] # 1 혹은 2
+        self.room_group_name = 'group_%s' % self.room_name # group_agricola1
 
         # 방이 존재하지 않으면 방을 생성합니다.
         if not await self.room_exists():
@@ -55,6 +55,17 @@ class Consumer(AsyncJsonWebsocketConsumer):
                 {
                     'type': 'game_message',
                     'message': account_data
+                }
+            )
+        if request_type == 'build_fence':
+            result = await self.build_fence(text_data_json.get('fence_array'))
+            print(f'result 받아오기 성공')
+
+            await self.channel_layer.group_send(
+                self.room_group_name,
+                {
+                    'type': 'game_message',
+                    'message': result
                 }
             )
 
@@ -105,9 +116,6 @@ class Consumer(AsyncJsonWebsocketConsumer):
         
         if request_type == 'construct_cowshed':
             await self.construct_cowshed(text_data_json)
-        
-        if request_type == 'build_fence':
-            await self.build_fence(text_data_json)
 
         if request_type == 'login':
             await self.login(text_data_json)
@@ -239,21 +247,31 @@ class Consumer(AsyncJsonWebsocketConsumer):
         client = Client()
         response = client.get('/playerresource/get_player_resource/', {'player_id': player_id, 'resource_id': resource_id})
 
-        # Retrieve the response content
-        content = response.content
+        result = {
+            'type': 'api_response',
+            'message': response.data
+        }
 
-        # Construct a JSON response
+        await self.channel_layer.group_send(message=result, group=self.room_group_name)
+
+    async def build_fence(self, fence_array): # { 'fence_array': [[3, 4], [5, 6]] }
+        fence_array = json.loads(fence_array)
+        print(f'json fence_array: {fence_array}')
+        client = Client()
+        response = client.post('/fenceposition/build_fence/', {'player_id': self.player_id, 'fence_array': fence_array})
+        content = response.content
         json_response = {
             'status': response.status_code,
             'data': content.decode(),
         }
+        print(f'json_response data: {json_response.get("data")}')
 
         result = {
             'type': 'api_response',
             'message': json_response
         }
 
-        await self.channel_layer.group_send(message=result, group=self.room_group_name)
+        return result
 
     async def get_all_position(self, request):
         player_id = request.get('player_id')
