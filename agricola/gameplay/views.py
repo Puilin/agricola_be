@@ -53,7 +53,7 @@ class AccountViewSet(ModelViewSet):
         return Response({'message': 'Login Complete.', 'player_id': player_id}, status=status.HTTP_200_OK)
 
     @action(detail=False, methods=['GET'])
-    def initial(self, request):
+    def init_(self, request):
         players = Player.objects.all()
         for player in players:
             player.adult_num = 2
@@ -97,13 +97,12 @@ class AccountViewSet(ModelViewSet):
             else:
                 pr.resource_num = 0
             pr.save()
-        playercards = PlayerCard.objects.all()
-        for playercard in playercards:
-            # 주요설비 카드 덱에서 제거
-            if playercard.card_id.id in list(range(29, 39)):
-                playercard.delete()
-            playercard.activate = 0
-            playercard.save()
+        
+        PlayerCard.objects.all().delete()
+        sc = SubFacilityCardViewSet
+        sc.get_random_subfacilitycards(sc, request)
+        jc = JobCardViewSet
+        jc.get_random_jobcards(jc, request)
         actionboxs = ActionBox.objects.all()
         for actionbox in actionboxs:
             if actionbox.is_res:
@@ -1188,6 +1187,8 @@ class FamilyPositionViewSet(ModelViewSet):
             #낚시
             elif action_id == 16:
                 response = fishing(player)
+            elif action_id == 17:
+                response = fencing(player)
             # 양시장
             elif action_id == 18:
                 response = sheep_market(player)
@@ -1513,7 +1514,11 @@ class PlayerCardViewSet(ModelViewSet):
                 my_resource.save()
             active_card.player_id = my_id
             active_card.save()
-            PlayerCard.objects.create(activate=1, player_id=player, card_id=active_card.card_id)
+            ids = list(range(29,39))
+            deck = PlayerCard.objects.filter(card_id__in=ids)
+            card = deck.get(card_id=active_card.card_id)
+            if card is not None:
+                PlayerCard.objects.create(activate=1, player_id=player, card_id=active_card.card_id)
             return Response({'message': 'Activate Success'})
         # 보조설비, 직업카드일때
         else:

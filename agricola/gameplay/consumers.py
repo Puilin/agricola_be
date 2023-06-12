@@ -27,7 +27,7 @@ class Consumer(AsyncJsonWebsocketConsumer):
             self.channel_name
         )
         client = Client()
-        await client.get('/account/initial/')
+        client.get('/account/init_/')
         await self.accept()
         await self.channel_layer.group_send(
             self.room_group_name,
@@ -123,6 +123,12 @@ class Consumer(AsyncJsonWebsocketConsumer):
 
             if request_type == 'get_available_slots':
                 await self.get_available_slots(text_data_json)
+
+            if request_type == 'round_end':
+                await self.round_end(text_data_json)
+            
+            if request_type == 'period_end':
+                await self.period_end(text_data_json)
         except:
             await self.channel_layer.group_send(self.room_group_name, {'type':'game_message', 'message':'Invalid API formula'})
 
@@ -584,6 +590,68 @@ class Consumer(AsyncJsonWebsocketConsumer):
 
         client = Client()
         response = client.get('/boardposition/get_available_slots/', req_body, content_type='application/json')
+
+        # Retrieve the response content
+        content = response.content
+
+        # Construct a JSON response
+        json_response = {
+            'status': response.status_code,
+            'data': content.decode(),
+        }
+
+        result = {
+            'type': 'api_response',
+            'message': json_response
+        }
+
+        await self.channel_layer.group_send(message=result, group=self.room_group_name)
+
+    async def round_end(self, request):
+        client = Client()
+        response = client.get('/gamestatus/round_end/')
+
+        # Retrieve the response content
+        content = response.content
+
+        # Construct a JSON response
+        json_response = {
+            'status': response.status_code,
+            'data': content.decode(),
+        }
+
+        result = {
+            'type': 'api_response',
+            'message': json_response
+        }
+
+        await self.channel_layer.group_send(message=result, group=self.room_group_name)
+
+    async def period_end(self, request):
+        client = Client()
+        response = client.get('/gamestatus/period_end/')
+
+        # Retrieve the response content
+        content = response.content
+
+        # Construct a JSON response
+        json_response = {
+            'status': response.status_code,
+            'data': content.decode(),
+        }
+
+        result = {
+            'type': 'api_response',
+            'message': json_response
+        }
+
+        await self.channel_layer.group_send(message=result, group=self.room_group_name)
+    
+    async def calculate_score(self, request):
+        player_id = request.get('player_id')
+
+        client = Client()
+        response = client.get('/playerboardstatus/calculate/', {'player_id':player_id})
 
         # Retrieve the response content
         content = response.content
