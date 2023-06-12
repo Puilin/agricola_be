@@ -118,7 +118,7 @@ class AccountViewSet(ModelViewSet):
             facility_card.player_id = 0
             facility_card.save()
         entry = FstPlayer.objects.get(id=2)
-        entry.player_id = 0
+        entry.player_id = 5
         entry.save()
         return Response(status=200)
 
