@@ -573,16 +573,16 @@ class BoardPositionViewSet(ModelViewSet):
     @action(detail=False, methods=['GET'])
     def get_available_slots(self, request):
         player_id = request.query_params.get('player_id')
-        type = request.query_params.get('type')
+        slot_type = request.query_params.get('slot_type')
 
         player = Player.objects.get(id=player_id)
         board = PlayerBoardStatus.objects.get(player_id=player)
         board_pos = BoardPosition.objects.filter(board_id=board)
 
-        if type == 'room':
+        if slot_type == 'room':
             available_rooms = get_adjacent_rooms(board_pos)
             return Response({'available': available_rooms})
-        if type == 'cowshed':
+        if slot_type == 'cowshed':
             available_cowshed = get_available_cowshed(board_pos)
             return Response({'available': available_cowshed})
 
@@ -1513,9 +1513,9 @@ class PlayerCardViewSet(ModelViewSet):
     @action(detail=False, methods=['put'])
     def activate_card(self, request):
         # 어떤플레이어가 어떤카드를 활성화시킬건지
-        my_id = request.data.get('player_id')
+        my_id = int(request.data.get('player_id'))
         player = Player.objects.get(id=my_id)
-        choice_card = request.data.get('card_id')
+        choice_card = int(request.data.get('card_id'))
 
         # 활성화 가능 여부 check
         active_costs = ActivationCost.objects.filter(card_id=choice_card)
