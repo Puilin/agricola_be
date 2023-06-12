@@ -129,6 +129,10 @@ class Consumer(AsyncJsonWebsocketConsumer):
             
             if request_type == 'period_end':
                 await self.period_end(text_data_json)
+            
+            if request_type == 'calculate_score':
+                await self.calculate_score(text_data_json)
+
         except:
             await self.channel_layer.group_send(self.room_group_name, {'type':'game_message', 'message':'Invalid API formula'})
 
