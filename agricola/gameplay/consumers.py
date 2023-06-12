@@ -58,15 +58,7 @@ class Consumer(AsyncJsonWebsocketConsumer):
                 }
             )
         if request_type == 'build_fence':
-            result = await self.build_fence(text_data_json.get('fence_array'))
-
-            await self.channel_layer.group_send(
-                self.room_group_name,
-                {
-                    'type': 'game_message',
-                    'message': result
-                }
-            )
+            await self.build_fence(text_data_json.get('fence_array'))
 
         if request_type == 'choose_first_player':
             fst_player = await self.choose_first_player()
@@ -267,8 +259,10 @@ class Consumer(AsyncJsonWebsocketConsumer):
             'type': 'api_response',
             'message': json_response
         }
-
-        return result
+        await self.channel_layer.group_send(
+            message= result,
+            group=self.room_group_name
+        )
 
     async def get_all_position(self, request):
         player_id = request.get('player_id')
