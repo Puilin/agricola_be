@@ -48,71 +48,75 @@ class Consumer(AsyncJsonWebsocketConsumer):
         text_data_json = json.loads(text_data)
         request_type = text_data_json.get('type')
 
-        if request_type == 'get_account_data':
-            account_data = await self.get_account_data()
-            await self.channel_layer.group_send(
-                self.room_group_name,
-                {
-                    'type': 'game_message',
-                    'message': account_data
-                }
-            )
-        if request_type == 'build_fence':
-            await self.build_fence(text_data_json.get('fence_array'))
+        
+        try:
+            if request_type == 'get_account_data':
+                account_data = await self.get_account_data()
+                await self.channel_layer.group_send(
+                    self.room_group_name,
+                    {
+                        'type': 'game_message',
+                        'message': account_data
+                    }
+                )
+            if request_type == 'build_fence':
+                await self.build_fence(text_data_json.get('fence_array'))
 
-        if request_type == 'choose_first_player':
-            fst_player = await self.choose_first_player()
-            await self.send_json(fst_player)
+            if request_type == 'choose_first_player':
+                fst_player = await self.choose_first_player()
+                await self.send_json(fst_player)
 
-        if request_type == 'get_random_subfacilitycards':
-            random_cards = await self.get_random_subfacilitycards()
-            await self.send_json(random_cards)
+            if request_type == 'get_random_subfacilitycards':
+                random_cards = await self.get_random_subfacilitycards()
+                await self.send_json(random_cards)
 
-        if request_type == 'get_random_jobcards':
-            random_cards = await self.get_random_jobcards()
-            await self.send_json(random_cards)
+            if request_type == 'get_random_jobcards':
+                random_cards = await self.get_random_jobcards()
+                await self.send_json(random_cards)
 
-        if request_type == 'get_turn':
-            await self.get_turn()
+            if request_type == 'get_turn':
+                await self.get_turn()
 
-        if request_type == 'take_action':
-            await self.take_action(text_data_json)
-        
-        if request_type == 'get_player_resource':
-            await self.get_player_resource(text_data_json)
+            if request_type == 'take_action':
+                await self.take_action(text_data_json)
+            
+            if request_type == 'get_player_resource':
+                await self.get_player_resource(text_data_json)
 
-        if request_type == 'get_all_position':
-            await self.get_all_position(text_data_json)
-        
-        if request_type == 'update_player_resource':
-            await self.update_player_resource(text_data_json)
-        
-        if request_type == 'patch_boardposition':
-            await self.patch_boardposition(text_data_json)
-        
-        if request_type == 'post_penposition':
-            await self.post_penposition(text_data_json)
-        
-        if request_type == 'activate_card':
-            await self.activate_card(text_data_json)
-        
-        if request_type == 'raise_animal':
-            await self.raise_animal(text_data_json)
-        
-        if request_type == 'construct_land':
-            await self.construct_land(text_data_json)
-        
-        if request_type == 'construct_room':
-            await self.construct_room(text_data_json)
-        
-        if request_type == 'construct_cowshed':
-            await self.construct_cowshed(text_data_json)
+            if request_type == 'get_all_position':
+                await self.get_all_position(text_data_json)
+            
+            if request_type == 'update_player_resource':
+                await self.update_player_resource(text_data_json)
+            
+            if request_type == 'patch_boardposition':
+                await self.patch_boardposition(text_data_json)
+            
+            if request_type == 'post_penposition':
+                await self.post_penposition(text_data_json)
+            
+            if request_type == 'activate_card':
+                await self.activate_card(text_data_json)
+            
+            if request_type == 'raise_animal':
+                await self.raise_animal(text_data_json)
+            
+            if request_type == 'construct_land':
+                await self.construct_land(text_data_json)
+            
+            if request_type == 'construct_room':
+                await self.construct_room(text_data_json)
+            
+            if request_type == 'construct_cowshed':
+                await self.construct_cowshed(text_data_json)
 
-        if request_type == 'login':
-            await self.login(text_data_json)
+            if request_type == 'login':
+                await self.login(text_data_json)
 
-        if request_type == 'get_available_slots':
-            await self.get_available_slots(text_data_json)
+            if request_type == 'get_available_slots':
+                await self.get_available_slots(text_data_json)
+        except:
+            await self.channel_layer.group_send(self.room_group_name, {'type':'game_message', 'message':'Invalid API formula'})
 
     async def game_message(self, event):
         await self.send_json(event['message'])
