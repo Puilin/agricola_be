@@ -26,8 +26,16 @@ class Consumer(AsyncJsonWebsocketConsumer):
             self.room_group_name,
             self.channel_name
         )
-
+        client = Client()
+        client.get('/account/initial/')
         await self.accept()
+        await self.channel_layer.group_send(
+            self.room_group_name,
+            {
+                'type': 'game_message',
+                'message': 'initial complete.'
+            }
+        )
 
     async def disconnect(self, close_code):
         # 방 그룹에서 연결을 제거합니다.
