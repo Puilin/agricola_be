@@ -633,7 +633,7 @@ class Consumer(AsyncJsonWebsocketConsumer):
 
     async def period_end(self, request):
         client = Client()
-        response = client.get('/gamestatus/period_end/')
+        response = client.get('/gamestatus/period_end1/')
 
         # Retrieve the response content
         content = response.content
