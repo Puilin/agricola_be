@@ -85,8 +85,8 @@ class Consumer(AsyncJsonWebsocketConsumer):
         if request_type == 'update_player_resource':
             await self.update_player_resource(text_data_json)
         
-        if request_type == 'patch_board_position':
-            await self.patch_board_position(text_data_json)
+        if request_type == 'patch_boardposition':
+            await self.patch_boardposition(text_data_json)
         
         if request_type == 'post_penposition':
             await self.post_penposition(text_data_json)
@@ -97,14 +97,11 @@ class Consumer(AsyncJsonWebsocketConsumer):
         if request_type == 'raise_animal':
             await self.raise_animal(text_data_json)
         
-        if request_type == 'constuct_land':
-            await self.constuct_land(text_data_json)
+        if request_type == 'construct_land':
+            await self.construct_land(text_data_json)
         
         if request_type == 'construct_room':
             await self.construct_room(text_data_json)
-        
-        if request_type == 'put_boardposition':
-            await self.put_boardposition(text_data_json)
         
         if request_type == 'construct_cowshed':
             await self.construct_cowshed(text_data_json)
@@ -114,6 +111,9 @@ class Consumer(AsyncJsonWebsocketConsumer):
 
         if request_type == 'login':
             await self.login(text_data_json)
+
+        if request_type == 'get_available_slots':
+            await self.get_available_slots(text_data_json)
 
     async def game_message(self, event):
         await self.send_json(event['message'])
@@ -280,7 +280,8 @@ class Consumer(AsyncJsonWebsocketConsumer):
 
         await self.channel_layer.group_send(message=result, group=self.room_group_name)
     
-    # async def patch_boardposition(self, request):
+    # 안됨
+    async def patch_boardposition(self, request):
         
         id = request.get('id')
         position = request.get('position')
@@ -292,7 +293,7 @@ class Consumer(AsyncJsonWebsocketConsumer):
         board_id = request.get('board_id')
         
         req_body = {
-            'id': id,
+            'id': int(id),
             'position': position,
             'position_type': position_type,
             'is_fam': is_fam,
@@ -306,7 +307,266 @@ class Consumer(AsyncJsonWebsocketConsumer):
         http_request = factory.patch('/boardposition/{}/'.format(id), req_body)
 
         client = Client()
-        response = client.patch('/boardposition/{}/'.format(id), req_body)
+        response = client.patch('/boardposition/{}/'.format(id), req_body, content_type="application/json")
+
+        # Retrieve the response content
+        content = response.content
+
+        # Construct a JSON response
+        json_response = {
+            'status': response.status_code,
+            'data': content.decode(),
+        }
+
+        result = {
+            'type': 'api_response',
+            'message': json_response
+        }
+
+        await self.channel_layer.group_send(message=result, group=self.room_group_name)
+
+    async def post_penposition(self, request):
+        animal_type = request.get('animal_type')
+        max_num = request.get('max_num')
+        current_num = request.get('current_num')
+        position_list = request.get('position_list')
+        board_id = request.get('board_id')
+
+        req_body = {
+            "animal_type": animal_type,
+            "max_num": max_num,
+            "current_num": current_num,
+            "position_list": position_list,
+            "board_id": board_id
+        }
+
+        factory = RequestFactory()
+        http_request = factory.post('/penposition/', req_body)
+
+        client = Client()
+        response = client.post('/penposition/', req_body)
+
+        # Retrieve the response content
+        content = response.content
+
+        # Construct a JSON response
+        json_response = {
+            'status': response.status_code,
+            'data': content.decode(),
+        }
+
+        result = {
+            'type': 'api_response',
+            'message': json_response
+        }
+
+        await self.channel_layer.group_send(message=result, group=self.room_group_name)
+
+    async def activate_card(self, request):
+        activate = request.get('activate')
+        player_id = request.get('player_id')
+        card_id = request.get('card_id')
+
+        req_body = {
+            "activate": activate,
+            "player_id": player_id,
+            "card_id": card_id
+        }
+
+        factory = RequestFactory()
+        http_request = factory.put('/playercard/activate_card/', req_body)
+
+        client = Client()
+        response = client.put('/playercard/activate_card/', req_body, content_type='application/json')
+
+        # Retrieve the response content
+        content = response.content
+
+        # Construct a JSON response
+        json_response = {
+            'status': response.status_code,
+            'data': content.decode(),
+        }
+
+        result = {
+            'type': 'api_response',
+            'message': json_response
+        }
+
+        await self.channel_layer.group_send(message=result, group=self.room_group_name)
+
+    async def raise_animal(self, request):
+        player_id = request.get('player_id')
+        animal_type = request.get('animal_type')
+        position = request.get('position')
+
+        req_body = {
+            "player_id": 1,
+            "animal_type": 1,
+            "position": 7
+        }
+        
+
+        factory = RequestFactory()
+        http_request = factory.put('/playerboardstatus/raise_animal/', req_body)
+
+        client = Client()
+        response = client.put('/playerboardstatus/raise_animal/', req_body, content_type='application/json')
+
+        # Retrieve the response content
+        content = response.content
+
+        # Construct a JSON response
+        json_response = {
+            'status': response.status_code,
+            'data': content.decode(),
+        }
+
+        result = {
+            'type': 'api_response',
+            'message': json_response
+        }
+
+        await self.channel_layer.group_send(message=result, group=self.room_group_name)
+
+    async def construct_land(self, request):
+        player_id = request.get('player_id')
+        land_num = request.get('land_num')
+
+        req_body = {
+            "player_id": player_id,
+            "land_num": land_num
+        }
+
+        factory = RequestFactory()
+        http_request = factory.put('/boardposition/construct_land/', req_body)
+
+        client = Client()
+        response = client.put('/boardposition/construct_land/', req_body, content_type='application/json')
+
+        # Retrieve the response content
+        content = response.content
+
+        # Construct a JSON response
+        json_response = {
+            'status': response.status_code,
+            'data': content.decode(),
+        }
+
+        result = {
+            'type': 'api_response',
+            'message': json_response
+        }
+
+        await self.channel_layer.group_send(message=result, group=self.room_group_name)
+
+    async def construct_room(self, request):
+        player_id = request.get('player_id')
+        position = request.get('position')
+
+        req_body = {
+            "player_id": player_id,
+            "position": position
+        }
+
+        factory = RequestFactory()
+        http_request = factory.put('/boardposition/construct_room/', req_body)
+
+        client = Client()
+        response = client.put('/boardposition/construct_room/', req_body, content_type='application/json')
+
+        # Retrieve the response content
+        content = response.content
+
+        # Construct a JSON response
+        json_response = {
+            'status': response.status_code,
+            'data': content.decode(),
+        }
+
+        result = {
+            'type': 'api_response',
+            'message': json_response
+        }
+
+        await self.channel_layer.group_send(message=result, group=self.room_group_name)
+
+    async def construct_cowshed(self, request):
+        player_id = request.get('player_id')
+        position = request.get('position')
+
+        req_body = {
+            "player_id": player_id,
+            "position": position
+        }
+
+        factory = RequestFactory()
+        http_request = factory.put('/boardposition/construct_cowshed/', req_body)
+
+        client = Client()
+        response = client.put('/boardposition/construct_cowshed/', req_body, content_type='application/json')
+
+        # Retrieve the response content
+        content = response.content
+
+        # Construct a JSON response
+        json_response = {
+            'status': response.status_code,
+            'data': content.decode(),
+        }
+
+        result = {
+            'type': 'api_response',
+            'message': json_response
+        }
+
+        await self.channel_layer.group_send(message=result, group=self.room_group_name)
+
+    async def login(self, request):
+        user_id = request.get('user_id')
+        user_pw = request.get('user_pw')
+        
+        req_body = {
+            "user_id": user_id,
+            "user_pw": user_pw
+        }
+
+        factory = RequestFactory()
+        http_request = factory.post('/account/login/', req_body)
+
+        client = Client()
+        response = client.post('/account/login/', req_body, content_type='application/json')
+
+        # Retrieve the response content
+        content = response.content
+
+        # Construct a JSON response
+        json_response = {
+            'status': response.status_code,
+            'data': content.decode(),
+        }
+
+        result = {
+            'type': 'api_response',
+            'message': json_response
+        }
+
+        await self.channel_layer.group_send(message=result, group=self.room_group_name)
+    
+    async def get_available_slots(self, request):
+        player_id = request.get('player_id')
+        slot_type = request.get('slot_type')
+
+        req_body = {
+            "player_id" : player_id,
+            "slot_type" : slot_type
+        }
+
+        factory = RequestFactory()
+        http_request = factory.get('/boardposition/get_available_slots/', req_body)
+
+        client = Client()
+        response = client.get('/boardposition/get_available_slots/', req_body, content_type='application/json')
 
         # Retrieve the response content
         content = response.content
