@@ -351,8 +351,6 @@ class PlayerBoardStatusViewSet(ModelViewSet):
         player_id = request.data.get('player_id')
         animal_type = request.data.get('animal_type')
         position = request.data.get('position')
-        print(f'player_id: {player_id} animal_type: {animal_type} position: {position}')
-        print(f'type: {type(player_id)} / {type(animal_type)} / {type(position)}')
 
         player = Player.objects.get(id=player_id)
         board = self.queryset.get(player_id=player)
@@ -364,7 +362,7 @@ class PlayerBoardStatusViewSet(ModelViewSet):
             return Response({'error': 'Invalid animal_type'}, status=403)
         position_type = slot.position_type
         # 우리가 아님
-        if position_type in [3,4,5]:
+        if position_type in [0, 1, 2]:
             return Response({'error': 'that position is not pen'}, status=403)
 
         # 해당 칸에 동물이 아무도 없으면

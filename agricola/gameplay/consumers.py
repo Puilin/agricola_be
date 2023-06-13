@@ -437,14 +437,10 @@ class Consumer(AsyncJsonWebsocketConsumer):
         position = request.get('position')
 
         req_body = {
-            "player_id": 1,
-            "animal_type": 1,
-            "position": 7
+            "player_id": player_id,
+            "animal_type": animal_type,
+            "position": position
         }
-        
-
-        factory = RequestFactory()
-        http_request = factory.put('/playerboardstatus/raise_animal/', req_body)
 
         client = Client()
         response = client.put('/playerboardstatus/raise_animal/', req_body, content_type='application/json')
