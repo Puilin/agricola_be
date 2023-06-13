@@ -120,6 +120,10 @@ class AccountViewSet(ModelViewSet):
             facility_card.save()
 
         NumberingFence.objects.all().delete()
+
+        entry = FstPlayer.objects.get(id=2)
+        entry.player_id = 5
+        entry.save()
         return Response(status=200)
 
 class PlayerViewSet(ModelViewSet):
@@ -1024,6 +1028,10 @@ class GameStatusViewSet(ModelViewSet):
         #게임판에서 가족말 제거
         familyposition = FamilyPosition.objects.all()
         familyposition.delete()
+        #round_array 업데이트
+        entry = FstPlayer.objects.get(id=2)
+        entry.player_id += 1
+        entry.save()
 
         return Response({'next round': game_status.round, 'turn': game_status.turn})
 
@@ -1546,6 +1554,18 @@ class FstPlayerViewSet(ModelViewSet):
     queryset = FstPlayer.objects.all()
     serializer_class = FstPlayerSerializer
 
+    @action(detail=False, methods=['GET'])
+    def get_round_array(self, request):
+        round_array = self.queryset.get(id=2)
+        idx = round_array.player_id
+        array = []
+        for i in range(14):
+            if i < idx:
+                array.append(True)
+            else:
+                array.append(False)
+        return Response({"round_array": array})
+
 class NumberingFenceViewSet(ModelViewSet):
     queryset = NumberingFence.objects.all()
     serializer_class = NumberingFenceSerializer
@@ -1573,4 +1593,3 @@ class NumberingFenceViewSet(ModelViewSet):
             return Response({'player_id': player_id, 'fences': numbering_fence.fence_info}, status=status.HTTP_200_OK)
         except ObjectDoesNotExist:
             return Response({'message': 'no player fences info'}, status=status.HTTP_404_NOT_FOUND)
-

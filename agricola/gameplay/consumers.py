@@ -135,6 +135,9 @@ class Consumer(AsyncJsonWebsocketConsumer):
 
             if request_type == 'get_fences':
                 await self.get_fences(text_data_json)
+            
+            if request_type == 'calculate_score':
+                await self.calculate_score(text_data_json)
         except:
             await self.channel_layer.group_send(self.room_group_name, {'type':'game_message', 'message':'Invalid API formula'})
 
@@ -635,7 +638,7 @@ class Consumer(AsyncJsonWebsocketConsumer):
 
     async def period_end(self, request):
         client = Client()
-        response = client.get('/gamestatus/period_end/')
+        response = client.get('/gamestatus/period_end1/')
 
         # Retrieve the response content
         content = response.content
