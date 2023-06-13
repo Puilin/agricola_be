@@ -129,6 +129,12 @@ class Consumer(AsyncJsonWebsocketConsumer):
             
             if request_type == 'period_end':
                 await self.period_end(text_data_json)
+
+            if request_type == 'store_fences':
+                await self.store_fences(text_data_json)
+
+            if request_type == 'get_fences':
+                await self.get_fences(text_data_json)
         except:
             await self.channel_layer.group_send(self.room_group_name, {'type':'game_message', 'message':'Invalid API formula'})
 
@@ -667,4 +673,42 @@ class Consumer(AsyncJsonWebsocketConsumer):
             'message': json_response
         }
 
+        await self.channel_layer.group_send(message=result, group=self.room_group_name)
+
+    async def store_fences(self, request):
+        player_id = request.get('player_id')
+        fences = request.get('fences')
+
+        client = Client()
+        response = client.post('/numberingfence/store_fences/', {'player_id': player_id, 'fences': fences}, content_type='application/json')
+
+        content = response.content
+
+        json_response = {
+            'status': response.status_code,
+            'data': content.decode(),
+        }
+
+        result = {
+            'type': 'api_response',
+            'message': json_response
+        }
+
+        await self.channel_layer.group_send(message=result, group=self.room_group_name)
+
+    async def get_fences(self, request):
+        player_id = request.get('player_id')
+
+        client = Client()
+        response = client.post('/numberingfence/get_fences/', {'player_id': player_id}, content_type='application/json')
+        content = response.content
+
+        json_response = {
+            'status': response.status_code,
+            'data': content.decode(),
+        }
+        result = {
+            'type': 'api_response',
+            'message': json_response
+        }
         await self.channel_layer.group_send(message=result, group=self.room_group_name)

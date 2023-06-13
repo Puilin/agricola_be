@@ -111,3 +111,8 @@ class FstPlayerSerializer(serializers.ModelSerializer):
     class Meta:
         model = FstPlayer
         fields = '__all__'
+
+class NumberingFenceSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = NumberingFence
+        fields = '__all__'
