@@ -1,3 +1,4 @@
+from django.core.exceptions import ObjectDoesNotExist
 from django.shortcuts import render
 from rest_framework.viewsets import ModelViewSet
 from .models import *
@@ -117,6 +118,9 @@ class AccountViewSet(ModelViewSet):
         for facility_card in facility_cards:
             facility_card.player_id = 0
             facility_card.save()
+
+        NumberingFence.objects.all().delete()
+
         entry = FstPlayer.objects.get(id=2)
         entry.player_id = 5
         entry.save()
@@ -1561,3 +1565,31 @@ class FstPlayerViewSet(ModelViewSet):
             else:
                 array.append(False)
         return Response({"round_array": array})
+
+class NumberingFenceViewSet(ModelViewSet):
+    queryset = NumberingFence.objects.all()
+    serializer_class = NumberingFenceSerializer
+
+    @action(detail=False, methods=['post'])
+    def store_fences(self, request):
+        player_id = int(request.data.get('player_id'))
+        fences = request.data.get('fences')
+
+        try:
+            numbering_fence = NumberingFence.objects.get(player_id=player_id)
+            numbering_fence.fence_info = fences
+            numbering_fence.save()
+            return Response({'message': 'fences update complete.'}, status=status.HTTP_200_OK)
+        except ObjectDoesNotExist:
+            numbering_fence = NumberingFence(player_id=player_id, fence_info=fences)
+            numbering_fence.save()
+            return Response({'message': 'fences store complete.'}, status=status.HTTP_201_CREATED)
+
+    @action(detail=False, methods=['post'])
+    def get_fences(self, request):
+        player_id = int(request.data.get('player_id'))
+        try:
+            numbering_fence = NumberingFence.objects.get(player_id=player_id)
+            return Response({'player_id': player_id, 'fences': numbering_fence.fence_info}, status=status.HTTP_200_OK)
+        except ObjectDoesNotExist:
+            return Response({'message': 'no player fences info'}, status=status.HTTP_404_NOT_FOUND)

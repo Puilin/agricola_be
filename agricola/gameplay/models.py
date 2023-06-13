@@ -120,3 +120,7 @@ class PenPosition(models.Model):
     max_num = models.IntegerField(null=False, default=2)
     current_num = models.IntegerField(null=False, default=0)
     position_list = models.CharField(max_length=100)
+
+class NumberingFence(models.Model):
+    player_id = models.IntegerField(null=False)
+    fence_info = models.CharField(max_length=300)
