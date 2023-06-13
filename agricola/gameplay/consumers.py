@@ -660,7 +660,7 @@ class Consumer(AsyncJsonWebsocketConsumer):
         player_id = request.get('player_id')
 
         client = Client()
-        response = client.get('/playerboardstatus/calculate/', {'player_id':player_id})
+        response = client.get('/playerboardstatus/calculate_score/', {'player_id':player_id})
 
         # Retrieve the response content
         content = response.content
