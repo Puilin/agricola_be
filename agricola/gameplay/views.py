@@ -358,7 +358,7 @@ class PlayerBoardStatusViewSet(ModelViewSet):
             return Response({'error': 'Invalid animal_type'}, status=403)
         position_type = slot.position_type
         # 우리가 아님
-        if position_type in [0, 1, 2]:
+        if position_type in [3,4,5]:
             return Response({'error': 'that position is not pen'}, status=403)
 
         # 해당 칸에 동물이 아무도 없으면
