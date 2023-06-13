@@ -351,6 +351,8 @@ class PlayerBoardStatusViewSet(ModelViewSet):
         player_id = request.data.get('player_id')
         animal_type = request.data.get('animal_type')
         position = request.data.get('position')
+        print(f'player_id: {player_id} animal_type: {animal_type} position: {position}')
+        print(f'type: {type(player_id)} / {type(animal_type)} / {type(position)}')
 
         player = Player.objects.get(id=player_id)
         board = self.queryset.get(player_id=player)
@@ -1544,7 +1546,6 @@ class PlayerCardViewSet(ModelViewSet):
             active_card.activate = 1
             active_card.save()
             return Response({'message': 'Activate Success'})
-
 
 class PenPositionViewSet(ModelViewSet):
     queryset = PenPosition.objects.all()
