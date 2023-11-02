@@ -44,8 +44,8 @@
   ![image](https://github.com/Agricola-Team4/be/assets/65332747/b9d2d6b5-1841-45fd-b09c-497db3109205)
 
   - ```/fenceposition/build_fence/```
-- 주요설비 활성화
+- 주요설비/보조설비 활성화
 
   ![image](https://github.com/Agricola-Team4/be/assets/65332747/a8859306-7f5b-4e0c-a26f-6a996e33c307)
 
-  - ```/mainfacilitycard/activate_card/```
+  - ```/card/activate_card/```
