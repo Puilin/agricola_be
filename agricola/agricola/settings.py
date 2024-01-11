@@ -14,18 +14,22 @@ import pymysql
 pymysql.install_as_MySQLdb()
 from pathlib import Path
 import os
+import environ
 
 os.environ["DJANGO_ALLOW_ASYNC_UNSAFE"] = 'true'
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-
+env = environ.Env(DEBUG=(bool, True))
+environ.Env.read_env(
+    env_file=os.path.join(BASE_DIR, '.env')
+)
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-2ybt2j8k#6k-jg*41s0_tguu@%@6st!vy3(y=#v*)8=a=fenb-'
+SECRET_KEY = env('SEC_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -40,7 +44,7 @@ ALLOWED_HOSTS = [
     # 'ec2-3-36-7-233.ap-northeast-2.compute.amazonaws.com',
     # 'https://jazzy-trifle-183e7d.netlify.app',
     # 'ip-172-31-10-22.ap-northeast-2.compute.internal'
-    '*'
+    env('HOST_IP')
 ]
 
 # Application definition
@@ -113,9 +117,9 @@ DATABASES = {
         # 'NAME': BASE_DIR / 'db.sqlite3',
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'agricola',
-        'USER': 'admin',
-        'PASSWORD': 'adminadmin',
-        'HOST': 'agricola.cuebihkjr6ud.ap-northeast-2.rds.amazonaws.com',
+        'USER': env('DB_USR'),
+        'PASSWORD': env('DB_PW'),
+        'HOST': 'ls-24983274042c81c2779dc29ab1c2c2ae19220f10.cli6muoga7ta.ap-northeast-2.rds.amazonaws.com',
         'PORT': '3306',
         'OPTIONS': {
             'charset': 'utf8mb4',

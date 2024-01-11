@@ -23,3 +23,5 @@ key.pem
 .pytest_cache
 
 pytest.ini
+
+.env
