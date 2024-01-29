@@ -39,7 +39,6 @@ CORS_ALLOW_ALL_ORIGINS = True
 ALLOWED_HOSTS = [
     # '0.0.0.0'
     # '127.0.0.1',
-    # 'localhost',
     # '3.36.7.233',
     # 'ec2-3-36-7-233.ap-northeast-2.compute.amazonaws.com',
     # 'https://jazzy-trifle-183e7d.netlify.app',
@@ -119,7 +118,7 @@ DATABASES = {
         'NAME': 'agricola',
         'USER': env('DB_USR'),
         'PASSWORD': env('DB_PW'),
-        'HOST': 'ls-24983274042c81c2779dc29ab1c2c2ae19220f10.cli6muoga7ta.ap-northeast-2.rds.amazonaws.com',
+        'HOST': env('DB_HOST'),
         'PORT': '3306',
         'OPTIONS': {
             'charset': 'utf8mb4',
