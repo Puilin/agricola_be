@@ -18,9 +18,10 @@ from django.core.asgi import get_asgi_application
 from gameplay.routing import websocket_urlpatterns
 
 application = ProtocolTypeRouter({
-  "websocket": AuthMiddlewareStack(
-    URLRouter(
-      websocket_urlpatterns
+    "http": get_asgi_application(), 
+    "websocket": AuthMiddlewareStack(
+        URLRouter(
+        websocket_urlpatterns
+        )
     )
-  )
 })
