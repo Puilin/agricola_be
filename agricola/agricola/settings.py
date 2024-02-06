@@ -75,7 +75,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'gameplay.roominfo_middleware.RoomInfoMiddleware'
+    'gameplay.broadcast_middleware.BroadcastMiddleware'
 ]
 
 ROOT_URLCONF = 'agricola.urls'
