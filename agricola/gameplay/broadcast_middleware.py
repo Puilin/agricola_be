@@ -1,6 +1,7 @@
 from channels.layers import get_channel_layer
 import json
 from asgiref.sync import async_to_sync
+from rest_framework.response import Response
 
 class BroadcastMiddleware:
     def __init__(self, get_response):
@@ -21,7 +22,11 @@ class BroadcastMiddleware:
         channel_layer = get_channel_layer()
         room_group_name = 'group_agricola%s' % request.GET['room_num'] # group_agricola1
 
-        json_response = json.dumps(response.data)
+        if isinstance(response, Response):
+            json_response = json.dumps(response.data)
+        else:
+            # HttpResponseNotFound와 같은 다른 응답 형식에 대한 처리
+            json_response = json.dumps({'message': "404 not found"})
 
         async_to_sync(channel_layer.group_send)(room_group_name, {
             'type': 'api_response',
