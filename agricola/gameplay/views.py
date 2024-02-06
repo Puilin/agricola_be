@@ -19,9 +19,12 @@ from asgiref.sync import async_to_sync
 def broadcast(request, response):
     channel_layer = get_channel_layer()
     room_group_name = 'group_agricola%s' % request.query_params.get('room_num') # group_agricola1
+
+    json_response = json.dumps(response.data)
+
     async_to_sync(channel_layer.group_send)(room_group_name, {
         'type': 'api_response',
-        'data': response.data
+        'data': json_response
     })
 
 
