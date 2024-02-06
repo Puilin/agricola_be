@@ -4,7 +4,7 @@ class RoomInfoMiddleware:
 
     def __call__(self, request):
         # API 호출 시에 room_name이라는 필드가 요청에 있다면 추가
-        room_num = request.data.get('room_num')
+        room_num = request.GET['room_num']
         if room_num:
             request.room_num = room_num
 
