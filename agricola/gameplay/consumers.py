@@ -26,14 +26,13 @@ class Consumer(AsyncJsonWebsocketConsumer):
             self.room_group_name,
             self.channel_name
         )
-        client = Client()
-        client.get('/account/init_/')
+        
         await self.accept()
         await self.channel_layer.group_send(
             self.room_group_name,
             {
-                'type': 'game_message',
-                'message': 'initial complete.'
+                'type': 'socket_message',
+                'message': f'connected to room {self.room_name} with {self.player_id}'
             }
         )
 
