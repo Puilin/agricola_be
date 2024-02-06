@@ -17,7 +17,7 @@ class BroadcastMiddleware:
             self.broadcast(request, response)
         return response
     
-    def broadcast(request, response):
+    def broadcast(self, request, response):
         channel_layer = get_channel_layer()
         room_group_name = 'group_agricola%s' % request.query_params.get('room_num') # group_agricola1
 
