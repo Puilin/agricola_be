@@ -11,7 +11,6 @@ import os
 
 from django.urls import path
 
-from agricola.gameplay.consumers import Consumer
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'agricola.settings')
 import django
 django.setup()
