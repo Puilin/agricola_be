@@ -26,7 +26,7 @@ class BroadcastMiddleware:
             json_response = json.dumps(response.data)
         else:
             # HttpResponseNotFound와 같은 다른 응답 형식에 대한 처리
-            json_response = json.dumps({'message': "404 not found"})
+            return
 
         async_to_sync(channel_layer.group_send)(room_group_name, {
             'type': 'api_response',
