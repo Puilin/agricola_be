@@ -15,10 +15,10 @@ import json
 from django.db.models import Sum
 from channels.layers import get_channel_layer
 
-async def broadcast(request, response):
+def broadcast(request, response):
     channel_layer = get_channel_layer()
     room_group_name = 'group_agricola%s' % request.query_params.get('room_num') # group_agricola1
-    await channel_layer.group_send(room_group_name, {
+    channel_layer.group_send(room_group_name, {
         'type': 'api_response',
         'data': response
     })
