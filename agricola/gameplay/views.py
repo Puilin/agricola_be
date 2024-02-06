@@ -13,6 +13,15 @@ from .actions import *
 from .utils import *
 import json
 from django.db.models import Sum
+from channels.layers import get_channel_layer
+
+async def broadcast(request, response):
+    channel_layer = get_channel_layer()
+    room_group_name = 'group_agricola%s' % request.room_num # group_agricola1
+    await channel_layer.group_send(room_group_name, {
+        'type': 'api_response',
+        'data': response
+    })
 
 
 # Create your views here.
@@ -162,8 +171,10 @@ class PlayerViewSet(ModelViewSet):
             origin = FstPlayer.objects.first()
             origin.player_id = first_player.id
             origin.save()
+            broadcast(request, Response({'success': True, 'first_player': first_player.id}))
             return Response({'success': True, 'first_player': first_player.id})
         else:
+            broadcast(request, Response({'success': False, 'message': 'No players found.'}))
             return Response({'success': False, 'message': 'No players found.'})
 
 
