@@ -162,10 +162,8 @@ class PlayerViewSet(ModelViewSet):
             origin = FstPlayer.objects.first()
             origin.player_id = first_player.id
             origin.save()
-            broadcast(request, Response({'success': True, 'first_player': first_player.id}))
             return Response({'success': True, 'first_player': first_player.id})
         else:
-            broadcast(request, Response({'success': False, 'message': 'No players found.'}))
             return Response({'success': False, 'message': 'No players found.'})
 
 
