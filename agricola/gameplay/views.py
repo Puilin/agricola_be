@@ -21,7 +21,7 @@ def broadcast(request, response):
     room_group_name = 'group_agricola%s' % request.query_params.get('room_num') # group_agricola1
     async_to_sync(channel_layer.group_send)(room_group_name, {
         'type': 'api_response',
-        'data': response
+        'data': response.data
     })
 
 
