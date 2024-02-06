@@ -17,7 +17,7 @@ from channels.layers import get_channel_layer
 
 async def broadcast(request, response):
     channel_layer = get_channel_layer()
-    room_group_name = 'group_agricola%s' % request.room_num # group_agricola1
+    room_group_name = 'group_agricola%s' % request.get['room_num'] # group_agricola1
     await channel_layer.group_send(room_group_name, {
         'type': 'api_response',
         'data': response
