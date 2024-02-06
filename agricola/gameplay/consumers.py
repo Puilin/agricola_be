@@ -140,6 +140,9 @@ class Consumer(AsyncJsonWebsocketConsumer):
         except:
             await self.channel_layer.group_send(self.room_group_name, {'type':'game_message', 'message':'Invalid API formula'})
 
+    async def socket_message(self, event):
+        await self.send_json(event['message'])
+
     async def game_message(self, event):
         await self.send_json(event['message'])
     
