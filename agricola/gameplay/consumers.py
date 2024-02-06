@@ -59,7 +59,7 @@ class Consumer(AsyncJsonWebsocketConsumer):
         await self.send_json(event['message'])
     
     async def api_response(self, event):
-        await self.send(event['message']['data'])
+        await self.send(event['data'])
 
     async def get_account_data(self):
         accounts = await sync_to_async(Account.objects.all)()
